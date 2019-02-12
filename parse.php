@@ -16,18 +16,24 @@ if($argc == 2){
     }
 }
 /* ********************* Check header *************************** */
-$line = fgets(STDIN);
+$fh = fopen('test.txt', 'r');
+$line = fgets($fh);
 $line = strtoupper(trim($line));
 if($line != ".IPPCODE19"){
     fwrite(STDERR, "Wrong header!\n");
     exit(21);
 }
-/* ********************* Reading from unput *************************** */
-while($a=fgets(STDIN)){
-    if(strpos($a, "#") != FALSE){
-         $stringos = preg_replace('/./', '', $a);
-        #print("komentar je: $a");
-        echo($stringos);
+/* ********************* Reading from unput / delete comments *************************** */
+while($in=fgets($fh)){
+    if(strpos($in, "#", 0) !== FALSE){
+        $in = preg_replace('/\x23.*$/', "", $in); # find and delete "#" and characters after
+        if($in === "\n"){
+            $in = preg_replace('/^[ \t]*[\r\n]+/m', '', $in); # delete blank lines
+        }
     }
-    echo $a;
+    echo $in;
 }
+
+$domtree = new DOMDocument('1.0', 'UTF-8');
+$program = $domtree->createElement('program');
+$program->setAttribute('language', 'IPPcode19');
