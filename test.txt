@@ -1,0 +1,7 @@
+.IPPcode19
+DEFVARGF@counter
+MOVEGF@counter  string@ #Inicializace  proměnné na prázdný řetězec
+##hugly bugly
+MOVE pica
+MOVE # aaaa #
+pic bracho
