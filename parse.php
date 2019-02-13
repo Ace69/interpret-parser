@@ -16,7 +16,8 @@ function remove_eol($str){
     return trim(preg_replace('/\s\s+/', ' ', $str));
 }
 
-/* ********************* Arguments parsing *************************** */
+
+/********************** Arguments parsing *************************** */
 $longopts = array("help");
 $option = getopt("", $longopts);
 if($argc == 2){
@@ -35,13 +36,26 @@ if($line != ".IPPCODE19"){
     fwrite(STDERR, "Wrong header!\n");
     exit(21);
 }
+
+/*********************** Create XML header ************************* */
+$domtree = new DOMDocument('1.0', 'UTF-8');
+$domtree->formatOutput=true;
+$domtree->preserveWhiteSpace=false;
+
+$program = $domtree->createElement('program');
+$program->setAttribute('language', 'IPPcode19');
+$domtree->appendChild($program);
+
+
 /********************** Used instruction *************************** */
 $instructions = array("", "", "", "", "", "", "",
     "", "", "ADD", "SUB", "IDIV", "MUL", "LT", "GT", "EQ", "AND", "OR",
     "NOT", "", "STRI2INT", "", "", "CONCAT", "", "GETCHAR",
     "", "", "", "JUMPIFEQ", "JUMPIFNEQ", "EXIT", "DPRINT", "");
+$data_types = array("int", "bool", "string", "nil", "label", "type", "var",);
 
 /********************** Reading from unput / delete comments *************************** */
+$instr_counter=1;
 while($in=fgets($fh)){
     if(strpos($in, "#", 0) !== FALSE){
         $in = preg_replace('/\x23.*$/', "", $in); # find and delete "#" and characters after
@@ -50,90 +64,124 @@ while($in=fgets($fh)){
         }
     }
     $instr_parse = strtok($in,' '); # split string by space
+    $split_str = preg_split("/[\s]+/", $in); # string splitted by spaces into array
     $in = remove_eol($in);
     $instr_parse = remove_eol($instr_parse);
-    #echo $instr_parse;
-    switch ($instr_parse){
-        /********************** 0 operandu ******************************* */
-        case "CREATEFRAME":
-            if(strcmp($instr_parse, $in)!=0){
+    $type="string";
+    if($instr_parse!="") { # sip comments
+        switch ($instr_parse) {
+            /********************** 0 operandu ******************************* */
+            case "CREATEFRAME":
+                if (strcmp($instr_parse, $in) != 0) {
+                    lex_err();
+                } else {
+                    $createframe = $domtree->createElement("instruction");
+                    $createframe->setAttribute("order","$instr_counter");
+                    $createframe->setAttribute("opcode", "CREATEFRAME");
+                    $program->appendChild($createframe);
+                    $instr_counter++;
+                    break;
+                }
+            case "PUSHFRAME":
+                if (strcmp($instr_parse, $in) != 0) {
+                    lex_err();
+                } else {
+                    $pushframe = $domtree->createElement("instruction");
+                    $pushframe->setAttribute("order","$instr_counter");
+                    $pushframe->setAttribute("opcode", "PUSHFRAME");
+                    $program->appendChild($pushframe);
+                    $instr_counter++;
+                    break;
+                }
+            case "POPFRAME":
+                if (strcmp($instr_parse, $in) != 0) {
+                    lex_err();
+                } else {
+                    $popframe = $domtree->createElement("instruction");
+                    $popframe->setAttribute("order","$instr_counter");
+                    $popframe->setAttribute("opcode", "POPFRAME");
+                    $program->appendChild($popframe);
+                    $instr_counter++;
+                    break;
+                }
+            case "RETURN":
+                if (strcmp($instr_parse, $in) != 0) {
+                    lex_err();
+                } else {
+                    $return = $domtree->createElement("instruction");
+                    $return->setAttribute("order","$instr_counter");
+                    $return->setAttribute("opcode", "RETURN");
+                    $program->appendChild($return);
+                    $instr_counter++;
+                    break;
+                }
+            case "BREAK":
+                if (strcmp($instr_parse, $in) != 0) {
+                    lex_err();
+                } else {
+                    $break = $domtree->createElement("instruction");
+                    $break->setAttribute("order","$instr_counter");
+                    $break->setAttribute("opcode", "BREAK");
+                    $program->appendChild($break);
+                    $instr_counter++;
+                    break;
+                }
+            /***************v********** 1 operand **************************** */
+            case "DEFVAR":
+                if (str_word_count($in) != 3) {
+                    lex_err();
+                } else {
+                    $defvar = $domtree->createElement("instruction");
+                    $defvar->setAttribute("order","$instr_counter");
+                    $defvar->setAttribute("opcode", "DEFVAR");
+                    $program->appendChild($defvar);
+
+                    $def_arg1 = $domtree->createElement("arg1");
+                    $def_arg1->setAttribute("type",$type);
+                    $defvar->appendChild($def_arg1);
+                    $instr_counter++;
+                    break;
+                }
+            case "CALL":
+                echo "lexOK";
+                EXIT(0);
+            case "POPS":
+                echo "lexOK";
+                EXIT(0);
+            case "PUSHS":
+                echo "lexOK";
+                EXIT(0);
+            case "LABEL":
+                echo "lexOK";
+                EXIT(0);
+            case "JUMP":
+                echo "lexOK";
+                EXIT(0);
+            case "WRITE":
+                echo "lexOK";
+                EXIT(0);
+            /***************v********** 2 operandy **************************** */
+            case "MOVE":
+                echo "lexOK";
+                EXIT(0);
+            case "INT2CHAR":
+                echo "lexOK";
+                EXIT(0);
+            case "READ":
+                echo "lexOK";
+                EXIT(0);
+            case "STRLEN":
+                echo "lexOK";
+                EXIT(0);
+            case "TYPE":
+                echo "lexOK";
+                EXIT(0);
+            default:
                 lex_err();
-            }else{
-                echo"generujeme\n";
-                break;
-            }
-        case "PUSHFRAME":
-            if(strcmp($instr_parse, $in)!=0){
-                lex_err();
-            }else{
-                echo "opet generujeme\n";
-                break;
-            }
-        case "POPFRAME":
-            if(strcmp($instr_parse, $in)!=0){
-                lex_err();
-            }else{
-                echo "opet generujeme\n";
-                break;
-            }
-        case "RETURN":
-            if(strcmp($instr_parse, $in)!=0){
-                lex_err();
-            }else{
-                echo "opet generujeme\n";
-                break;
-            }
-        case "BREAK":
-            if(strcmp($instr_parse, $in)!=0){
-                lex_err();
-            }else{
-                echo "opet generujeme\n";
-                break;
-            }
-        /***************v********** 1 operand **************************** */
-        case "DEFVAR":
-            echo"lexOK";
-            EXIT(0);
-        case "CALL":
-            echo"lexOK";
-            EXIT(0);
-        case "POPS":
-            echo"lexOK";
-            EXIT(0);
-        case "PUSHS":
-            echo"lexOK";
-            EXIT(0);
-        case "LABEL":
-            echo"lexOK";
-            EXIT(0);
-        case "JUMP":
-            echo"lexOK";
-            EXIT(0);
-        case "WRITE":
-            echo"lexOK";
-            EXIT(0);
-        /***************v********** 2 operandy **************************** */
-        case "MOVE":
-            echo"lexOK";
-            EXIT(0);
-        case "INT2CHAR":
-            echo"lexOK";
-            EXIT(0);
-        case "READ":
-            echo"lexOK";
-            EXIT(0);
-        case "STRLEN":
-            echo"lexOK";
-            EXIT(0);
-        case "TYPE":
-            echo"lexOK";
-            EXIT(0);
-        /******* 3 operandy *******
-         nasrat */
+            /******* 3 operandy *******
+             * nasrat */
+        }
     }
 
 }
-
-$domtree = new DOMDocument('1.0', 'UTF-8');
-$program = $domtree->createElement('program');
-$program->setAttribute('language', 'IPPcode19');
+echo $domtree->saveXML();
