@@ -67,6 +67,7 @@ while($in=fgets($fh)){
     $split_str = preg_split("/[\s]+/", $in); # string splitted by spaces into array
     $in = remove_eol($in);
     $instr_parse = remove_eol($instr_parse);
+    $in_array=(explode(" ",$in));
     $type="string";
     if($instr_parse!="") { # sip comments
         switch ($instr_parse) {
@@ -80,8 +81,8 @@ while($in=fgets($fh)){
                     $createframe->setAttribute("opcode", "CREATEFRAME");
                     $program->appendChild($createframe);
                     $instr_counter++;
-                    break;
                 }
+                break;
             case "PUSHFRAME":
                 if (strcmp($instr_parse, $in) != 0) {
                     lex_err();
@@ -91,8 +92,8 @@ while($in=fgets($fh)){
                     $pushframe->setAttribute("opcode", "PUSHFRAME");
                     $program->appendChild($pushframe);
                     $instr_counter++;
-                    break;
                 }
+                break;
             case "POPFRAME":
                 if (strcmp($instr_parse, $in) != 0) {
                     lex_err();
@@ -102,8 +103,8 @@ while($in=fgets($fh)){
                     $popframe->setAttribute("opcode", "POPFRAME");
                     $program->appendChild($popframe);
                     $instr_counter++;
-                    break;
                 }
+                break;
             case "RETURN":
                 if (strcmp($instr_parse, $in) != 0) {
                     lex_err();
@@ -113,8 +114,8 @@ while($in=fgets($fh)){
                     $return->setAttribute("opcode", "RETURN");
                     $program->appendChild($return);
                     $instr_counter++;
-                    break;
                 }
+                break;
             case "BREAK":
                 if (strcmp($instr_parse, $in) != 0) {
                     lex_err();
@@ -124,11 +125,11 @@ while($in=fgets($fh)){
                     $break->setAttribute("opcode", "BREAK");
                     $program->appendChild($break);
                     $instr_counter++;
-                    break;
                 }
+                break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
-                if (str_word_count($in) != 3) {
+                if (str_word_count($in) != 3 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false)) {
                     lex_err();
                 } else {
                     $defvar = $domtree->createElement("instruction");
@@ -136,27 +137,76 @@ while($in=fgets($fh)){
                     $defvar->setAttribute("opcode", "DEFVAR");
                     $program->appendChild($defvar);
 
-                    $def_arg1 = $domtree->createElement("arg1");
-                    $def_arg1->setAttribute("type",$type);
+                    $def_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $def_arg1->setAttribute("type","var");
                     $defvar->appendChild($def_arg1);
                     $instr_counter++;
-                    break;
                 }
+                break;
             case "CALL":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=2){
+                    lex_err();
+                } else {
+                    $call = $domtree->createElement("instruction");
+                    $call->setAttribute("order","$instr_counter");
+                    $call->setAttribute("opcode", "CALL");
+                    $program->appendChild($call);
+
+                    $call_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $call_arg1->setAttribute("type", "label");
+                    $call->appendChild($call_arg1);
+                    $instr_counter++;
+                }
+                break;
             case "POPS":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=3 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false) ){
+                    lex_err();
+                } else {
+                    $pops = $domtree->createElement("instruction");
+                    $pops->setAttribute("order","$instr_counter");
+                    $pops->setAttribute("opcode", "POPS");
+                    $program->appendChild($pops);
+
+                    $pops_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $pops_arg1->setAttribute("type", "label");
+                    $pops->appendChild($pops_arg1);
+                    $instr_counter++;
+                }
+                break;
             case "PUSHS":
                 echo "lexOK";
                 EXIT(0);
+                break;
             case "LABEL":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=2){
+                    lex_err();
+                } else {
+                    $label = $domtree->createElement("instruction");
+                    $label->setAttribute("order","$instr_counter");
+                    $label->setAttribute("opcode", "LABEL");
+                    $program->appendChild($label);
+
+                    $label_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $label_arg1->setAttribute("type", "label");
+                    $label->appendChild($label_arg1);
+                    $instr_counter++;
+                }
+                break;
             case "JUMP":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=2){
+                    lex_err();
+                } else {
+                    $jump = $domtree->createElement("instruction");
+                    $jump->setAttribute("order","$instr_counter");
+                    $jump->setAttribute("opcode", "JUMP");
+                    $program->appendChild($jump);
+
+                    $jump_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $jump_arg1->setAttribute("type", "label");
+                    $jump->appendChild($jump_arg1);
+                    $instr_counter++;
+                }
+                break;
             case "WRITE":
                 echo "lexOK";
                 EXIT(0);
