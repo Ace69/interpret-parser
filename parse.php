@@ -5,18 +5,40 @@
  * Date: 11.2.19
  */
 
-/*************** STDERR function ******************* */
 function lex_err(){
     fwrite(STDERR, "Lexical error!\n");
     exit(22);
 }
 
-/*********** remove eol from string *************************/
 function remove_eol($str){
     return trim(preg_replace('/\s\s+/', ' ', $str));
 }
 
+function var_or_const($in){
+    if (strpos($in, "GF@") || strpos($in, "LF@") || strpos($in, "TF@")) # variable
+        return 0;
+    elseif(strpos($in, "int@") || strpos($in, "bool@") || strpos($in, "string@") || strpos($in, "nil@")) # const
+        return 1;
+    else
+        return -1;
+}
 
+function check_2arg($in)
+{
+    if (strlen(strstr($in, "string@")) > 0 || strlen(strstr($in, "int@")) > 0 || strlen(strstr($in, "bool@")) > 0 || strlen(strstr($in, "nil@")) > 0) {
+        return 0;
+    }elseif(strlen(strstr($in, "GF@")) > 0 || strlen(strstr($in, "LF@")) > 0 || strlen(strstr($in, "TF@")) > 0){
+        return 1;
+    } else{
+        return -1;
+    }
+}
+
+function correct_const($in){
+    $in = strstr($in, '@');
+    $in = str_replace('@', '', $in);
+    return $in;
+}
 /********************** Arguments parsing *************************** */
 $longopts = array("help");
 $option = getopt("", $longopts);
@@ -47,11 +69,6 @@ $program->setAttribute('language', 'IPPcode19');
 $domtree->appendChild($program);
 
 
-/********************** Used instruction *************************** */
-$instructions = array("", "", "", "", "", "", "",
-    "", "", "ADD", "SUB", "IDIV", "MUL", "LT", "GT", "EQ", "AND", "OR",
-    "NOT", "", "STRI2INT", "", "", "CONCAT", "", "GETCHAR",
-    "", "", "", "JUMPIFEQ", "JUMPIFNEQ", "EXIT", "DPRINT", "");
 $data_types = array("int", "bool", "string", "nil", "label", "type", "var",);
 
 /********************** Reading from unput / delete comments *************************** */
@@ -67,7 +84,7 @@ while($in=fgets($fh)){
     $split_str = preg_split("/[\s]+/", $in); # string splitted by spaces into array
     $in = remove_eol($in);
     $instr_parse = remove_eol($instr_parse);
-    $in_array=(explode(" ",$in));
+    $input_array=(explode(" ",$in));
     $type="string";
     if($instr_parse!="") { # sip comments
         switch ($instr_parse) {
@@ -137,7 +154,7 @@ while($in=fgets($fh)){
                     $defvar->setAttribute("opcode", "DEFVAR");
                     $program->appendChild($defvar);
 
-                    $def_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $def_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                     $def_arg1->setAttribute("type","var");
                     $defvar->appendChild($def_arg1);
                     $instr_counter++;
@@ -152,7 +169,7 @@ while($in=fgets($fh)){
                     $call->setAttribute("opcode", "CALL");
                     $program->appendChild($call);
 
-                    $call_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $call_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                     $call_arg1->setAttribute("type", "label");
                     $call->appendChild($call_arg1);
                     $instr_counter++;
@@ -167,15 +184,32 @@ while($in=fgets($fh)){
                     $pops->setAttribute("opcode", "POPS");
                     $program->appendChild($pops);
 
-                    $pops_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $pops_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                     $pops_arg1->setAttribute("type", "label");
                     $pops->appendChild($pops_arg1);
                     $instr_counter++;
                 }
                 break;
             case "PUSHS":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=3){
+                    lex_err();
+                } else {
+                    $pushs = $domtree->createElement("instruction");
+                    $pushs->setAttribute("order","$instr_counter");
+                    $pushs->setAttribute("opcode", "PUSHS");
+                    $program->appendChild($pushs);
+
+                    $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                    if(var_or_const($in)==0){
+                        $pushs_arg1->setAttribute("type", "var");
+                    } elseif (var_or_const($in)==1){
+                        $pushs_arg1->setAttribute("type", "const");
+                    }else{
+                        lex_err();
+                    }
+                    $pushs->appendChild($pushs_arg1);
+                    $instr_counter++;
+                }
                 break;
             case "LABEL":
                 if(str_word_count($in)!=2){
@@ -186,7 +220,7 @@ while($in=fgets($fh)){
                     $label->setAttribute("opcode", "LABEL");
                     $program->appendChild($label);
 
-                    $label_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $label_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                     $label_arg1->setAttribute("type", "label");
                     $label->appendChild($label_arg1);
                     $instr_counter++;
@@ -201,19 +235,70 @@ while($in=fgets($fh)){
                     $jump->setAttribute("opcode", "JUMP");
                     $program->appendChild($jump);
 
-                    $jump_arg1 = $domtree->createElement("arg1", "$in_array[1]");
+                    $jump_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                     $jump_arg1->setAttribute("type", "label");
                     $jump->appendChild($jump_arg1);
                     $instr_counter++;
                 }
                 break;
             case "WRITE":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)!=3){
+                    lex_err();
+                } else{
+                    $write = $domtree->createElement("instruction");
+                    $write->setAttribute("order","$instr_counter");
+                    $write->setAttribute("opcode", "WRITE");
+                    $program->appendChild($write);
+
+                    $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                    if(var_or_const($in)==0){
+                        $write_arg1->setAttribute("type", "var");
+                    } elseif (var_or_const($in)==1){
+                        $write_arg1->setAttribute("type", "const");
+                    }else{
+                        lex_err();
+                    }
+                    $write->appendChild($write_arg1);
+                    $instr_counter++;
+                }
+                break;
             /***************v********** 2 operandy **************************** */
+            #TODO: Dodelat overeni druheho parametru, protoze funkce var_or_const zkontroluje cely radek, a ja potrebuju pouze druhy argument
+            # Ty dve operace s input_array[2] zajistuji odstraneni napr "GF@" prej vypisem konstanty
             case "MOVE":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)<4 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false) ){
+                    lex_err();
+                } else {
+                    $move = $domtree->createElement("instruction");
+                    $move->setAttribute("order","$instr_counter");
+                    $move->setAttribute("opcode", "MOVE");
+                    $program->appendChild($move);
+
+                    $move_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                    $move_arg1->setAttribute("type", "var");
+                    $move->appendChild($move_arg1);
+
+
+                    if(var_or_const($in)==0){
+                        if(check_2arg($input_array[2])==0) {
+                            $input_array[2]= correct_const($input_array[2]);
+                            $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                            $move_arg2->setAttribute("type", "const");
+                        }
+                        elseif(check_2arg($input_array[2])==1) {
+                            $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                            $move_arg2->setAttribute("type", "var");
+                        }
+                        else
+                            lex_err();
+                    }else{
+                        lex_err();
+                    }
+                    $move->appendChild($move_arg2);
+                    $instr_counter++;
+
+                }
+                break;
             case "INT2CHAR":
                 echo "lexOK";
                 EXIT(0);

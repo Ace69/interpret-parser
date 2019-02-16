@@ -1,10 +1,2 @@
             .IPPCODE19
-CALL aa
-CREATEFRAME
-LABEL while
-POPS GF@_bl_
-DEFVAR GF@blabol
-PUSHFRAME
-#aaa
-POPFRAME # koment #
-JUMP while
+MOVE counterLF@ string@picovina
