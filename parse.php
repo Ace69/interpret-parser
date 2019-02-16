@@ -14,21 +14,12 @@ function remove_eol($str){
     return trim(preg_replace('/\s\s+/', ' ', $str));
 }
 
-function check_1arg($in){
+function check_arg($in){
     if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) # variable
         return 0;
     elseif(strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0|| strncmp($in, "nil@", 4) === 0) # const
         return 1;
     else
-        return -1;
-}
-
-function check_2arg($in){
-    if (strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0|| strncmp($in, "nil@", 4) === 0)
-        return 0;
-    elseif(strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0)
-        return 1;
-     else
         return -1;
 }
 
@@ -151,7 +142,7 @@ while($in=fgets($fh)){
                 break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
-                if (str_word_count($in) != 3 || check_1arg($input_array[1])!=0) {
+                if (str_word_count($in) != 3 || check_arg($input_array[1])!=0) {
                     lex_err();
                 } else {
                     $defvar = $domtree->createElement("instruction");
@@ -166,7 +157,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "CALL":
-                if(str_word_count($in)!=2){
+                if(str_word_count($in)!=2 || ctype_alpha($input_array[1])==false){
                     lex_err();
                 } else {
                     $call = $domtree->createElement("instruction");
@@ -181,7 +172,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "POPS":
-                if(str_word_count($in)!=3 || check_1arg($input_array[1])!=0){
+                if(str_word_count($in)!=3 || check_arg($input_array[1])!=0){
                     lex_err();
                 } else {
                     $pops = $domtree->createElement("instruction");
@@ -204,10 +195,10 @@ while($in=fgets($fh)){
                     $pushs->setAttribute("opcode", "PUSHS");
                     $program->appendChild($pushs);
 
-                    if(check_1arg($input_array[1])==0){
+                    if(check_arg($input_array[1])==0){
                         $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $pushs_arg1->setAttribute("type", "var");
-                    } elseif (check_1arg($input_array[1])==1){
+                    } elseif (check_arg($input_array[1])==1){
                         $input_array[1] = correct_const($input_array[1]);
                         $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $pushs_arg1->setAttribute("type", "const");
@@ -218,7 +209,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "LABEL":
-                if(str_word_count($in)!=2){
+                if(str_word_count($in)!=2 || ctype_alpha($input_array[1])==false){
                     lex_err();
                 } else {
                     $label = $domtree->createElement("instruction");
@@ -233,7 +224,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "JUMP":
-                if(str_word_count($in)!=2){
+                if(str_word_count($in)!=2 || ctype_alpha($input_array[1])==false){
                     lex_err();
                 } else {
                     $jump = $domtree->createElement("instruction");
@@ -256,10 +247,54 @@ while($in=fgets($fh)){
                     $write->setAttribute("opcode", "WRITE");
                     $program->appendChild($write);
 
-                    if(check_1arg($input_array[1])==0){
+                    if(check_arg($input_array[1])==0){
                         $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $write_arg1->setAttribute("type", "var");
-                    } elseif (check_1arg($input_array[1])==1){
+                    } elseif (check_arg($input_array[1])==1){
+                        $input_array[1] = correct_const($input_array[1]);
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                        $write_arg1->setAttribute("type", "const");
+                    }else
+                        lex_err();
+                    $write->appendChild($write_arg1);
+                    $instr_counter++;
+                }
+                break;
+            case "EXIT":
+                if(str_word_count($in)!=3){
+                    lex_err();
+                } else{
+                    $write = $domtree->createElement("instruction");
+                    $write->setAttribute("order","$instr_counter");
+                    $write->setAttribute("opcode", "EXIT");
+                    $program->appendChild($write);
+
+                    if(check_arg($input_array[1])==0){
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                        $write_arg1->setAttribute("type", "var");
+                    } elseif (check_arg($input_array[1])==1){
+                        $input_array[1] = correct_const($input_array[1]);
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                        $write_arg1->setAttribute("type", "const");
+                    }else
+                        lex_err();
+                    $write->appendChild($write_arg1);
+                    $instr_counter++;
+                }
+                break;
+            case "DPRINT":
+                if(str_word_count($in)!=3){
+                    lex_err();
+                } else{
+                    $write = $domtree->createElement("instruction");
+                    $write->setAttribute("order","$instr_counter");
+                    $write->setAttribute("opcode", "DPRINT");
+                    $program->appendChild($write);
+
+                    if(check_arg($input_array[1])==0){
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                        $write_arg1->setAttribute("type", "var");
+                    } elseif (check_arg($input_array[1])==1){
                         $input_array[1] = correct_const($input_array[1]);
                         $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $write_arg1->setAttribute("type", "const");
@@ -271,9 +306,6 @@ while($in=fgets($fh)){
                 break;
             /***************v********** 2 operandy **************************** */
             case "MOVE":
-            case "STRLEN":
-            case "TYPE":
-            case "INT2CHAR":
                 if(str_word_count($in)<4 || str_word_count($in)>5){
                     lex_err();
                 } else {
@@ -287,12 +319,102 @@ while($in=fgets($fh)){
                     $move->appendChild($move_arg1);
 
 
-                    if(check_1arg($input_array[1])==0){
-                        if(check_2arg($input_array[2])==0) {
+                    if(check_arg($input_array[1])==0){
+                        if(check_arg($input_array[2])==0) {
                             $input_array[2]= correct_const($input_array[2]);
                             $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
                             $move_arg2->setAttribute("type", "const");
-                        } elseif(check_2arg($input_array[2])==1) {
+                        } elseif(check_arg($input_array[2])==1) {
+                            $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                            $move_arg2->setAttribute("type", "var");
+                        } else
+                            lex_err();
+                    } else
+                        lex_err();
+                    $move->appendChild($move_arg2);
+                    $instr_counter++;
+                }
+                break;
+            case "STRLEN":
+            if(str_word_count($in)<4 || str_word_count($in)>5){
+                lex_err();
+            } else {
+                $move = $domtree->createElement("instruction");
+                $move->setAttribute("order","$instr_counter");
+                $move->setAttribute("opcode", "STRLEN");
+                $program->appendChild($move);
+
+                $move_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                $move_arg1->setAttribute("type", "var");
+                $move->appendChild($move_arg1);
+
+
+                if(check_arg($input_array[1])==0){
+                    if(check_arg($input_array[2])==0) {
+                        $input_array[2]= correct_const($input_array[2]);
+                        $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                        $move_arg2->setAttribute("type", "const");
+                    } elseif(check_arg($input_array[2])==1) {
+                        $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                        $move_arg2->setAttribute("type", "var");
+                    } else
+                        lex_err();
+                } else
+                    lex_err();
+                $move->appendChild($move_arg2);
+                $instr_counter++;
+            }
+            break;
+            case "TYPE":
+            if(str_word_count($in)<4 || str_word_count($in)>5){
+                lex_err();
+            } else {
+                $move = $domtree->createElement("instruction");
+                $move->setAttribute("order","$instr_counter");
+                $move->setAttribute("opcode", "TYPE");
+                $program->appendChild($move);
+
+                $move_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                $move_arg1->setAttribute("type", "var");
+                $move->appendChild($move_arg1);
+
+
+                if(check_arg($input_array[1])==0){
+                    if(check_arg($input_array[2])==0) {
+                        $input_array[2]= correct_const($input_array[2]);
+                        $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                        $move_arg2->setAttribute("type", "const");
+                    } elseif(check_arg($input_array[2])==1) {
+                        $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                        $move_arg2->setAttribute("type", "var");
+                    } else
+                        lex_err();
+                } else
+                    lex_err();
+                $move->appendChild($move_arg2);
+                $instr_counter++;
+            }
+            break;
+            case "INT2CHAR":
+                if(str_word_count($in)<4 || str_word_count($in)>5){
+                    lex_err();
+                } else {
+                    $move = $domtree->createElement("instruction");
+                    $move->setAttribute("order","$instr_counter");
+                    $move->setAttribute("opcode", "INT2CHAR");
+                    $program->appendChild($move);
+
+                    $move_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                    $move_arg1->setAttribute("type", "var");
+                    $move->appendChild($move_arg1);
+
+
+                    if(check_arg($input_array[1])==0){
+                        if(check_arg($input_array[2])==0) {
+                            $input_array[2]= correct_const($input_array[2]);
+                            $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
+                            $move_arg2->setAttribute("type", "const");
+                        } elseif(check_arg($input_array[2])==1) {
                             $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
                             $move_arg2->setAttribute("type", "var");
                         } else
@@ -304,7 +426,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "READ":
-                if(str_word_count($in)<4 || str_word_count($in)>5 || check_type($input_array[2])!=0 || check_1arg($input_array[1])!=0){
+                if(str_word_count($in)<4 || str_word_count($in)>5 || check_type($input_array[2])!=0 || check_arg($input_array[1])!=0){
                     lex_err();
                 } else {
                     $read = $domtree->createElement("instruction");
@@ -325,6 +447,5 @@ while($in=fgets($fh)){
              * nasrat */
         }
     }
-
 }
 echo $domtree->saveXML();

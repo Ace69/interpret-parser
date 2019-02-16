@@ -1,8 +1,11 @@
             .IPPCODE19
+LABEL znacka
+READ LF@aa string@blabol
+JUMP znackaa
+CALL znacka
 
 READ GF@aaa string@blabol
 DEFVAR LF@a
 POPS TF@hugla
            WRITE int@intidzr
 MOVE GF@aa string@aa
-READ GF@aaa string@blabol
