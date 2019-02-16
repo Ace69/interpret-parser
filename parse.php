@@ -17,21 +17,26 @@ function remove_eol($str){
 function check_1arg($in){
     if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) # variable
         return 0;
-    elseif(strncmp($in, "int@", 3) ===0 || strncmp($in, "bool@", 3) === 0|| strncmp($in, "string@", 3) === 0|| strncmp($in, "nil@", 3) === 0) # const
+    elseif(strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0|| strncmp($in, "nil@", 4) === 0) # const
         return 1;
     else
         return -1;
 }
 
-function check_2arg($in)
-{
-    if (strncmp($in, "int@", 3) ===0 || strncmp($in, "bool@", 3) === 0|| strncmp($in, "string@", 3) === 0|| strncmp($in, "nil@", 3) === 0) {
+function check_2arg($in){
+    if (strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0|| strncmp($in, "nil@", 4) === 0)
         return 0;
-    }elseif(strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0){
+    elseif(strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0)
         return 1;
-    } else{
+     else
         return -1;
-    }
+}
+
+function check_type($in){
+    if (strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0)
+        return 0;
+    else
+        return -1;
 }
 
 function correct_const($in){
@@ -146,7 +151,7 @@ while($in=fgets($fh)){
                 break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
-                if (str_word_count($in) != 3 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false)) {
+                if (str_word_count($in) != 3 || check_1arg($input_array[1])!=0) {
                     lex_err();
                 } else {
                     $defvar = $domtree->createElement("instruction");
@@ -176,7 +181,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "POPS":
-                if(str_word_count($in)!=3 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false) ){
+                if(str_word_count($in)!=3 || check_1arg($input_array[1])!=0){
                     lex_err();
                 } else {
                     $pops = $domtree->createElement("instruction");
@@ -206,9 +211,8 @@ while($in=fgets($fh)){
                         $input_array[1] = correct_const($input_array[1]);
                         $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $pushs_arg1->setAttribute("type", "const");
-                    }else{
+                    }else
                         lex_err();
-                    }
                     $pushs->appendChild($pushs_arg1);
                     $instr_counter++;
                 }
@@ -252,23 +256,25 @@ while($in=fgets($fh)){
                     $write->setAttribute("opcode", "WRITE");
                     $program->appendChild($write);
 
-                    $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    if(check_1arg($in)==0){
+                    if(check_1arg($input_array[1])==0){
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $write_arg1->setAttribute("type", "var");
-                    } elseif (check_1arg($in)==1){
+                    } elseif (check_1arg($input_array[1])==1){
+                        $input_array[1] = correct_const($input_array[1]);
+                        $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $write_arg1->setAttribute("type", "const");
-                    }else{
+                    }else
                         lex_err();
-                    }
                     $write->appendChild($write_arg1);
                     $instr_counter++;
                 }
                 break;
             /***************v********** 2 operandy **************************** */
-            #TODO: Dodelat overeni druheho parametru, protoze funkce var_or_const zkontroluje cely radek, a ja potrebuju pouze druhy argument
-            # Ty dve operace s input_array[2] zajistuji odstraneni napr "GF@" prej vypisem konstanty
             case "MOVE":
-                if(str_word_count($in)<4 || (strpos($in, 'GF@')==false && strpos($in, 'LF@')==false && strpos($in, 'TF@')==false) ){
+            case "STRLEN":
+            case "TYPE":
+            case "INT2CHAR":
+                if(str_word_count($in)<4 || str_word_count($in)>5){
                     lex_err();
                 } else {
                     $move = $domtree->createElement("instruction");
@@ -286,33 +292,33 @@ while($in=fgets($fh)){
                             $input_array[2]= correct_const($input_array[2]);
                             $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
                             $move_arg2->setAttribute("type", "const");
-                        }
-                        elseif(check_2arg($input_array[2])==1) {
+                        } elseif(check_2arg($input_array[2])==1) {
                             $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");
                             $move_arg2->setAttribute("type", "var");
-                        }
-                        else
+                        } else
                             lex_err();
-                    }else{
+                    } else
                         lex_err();
-                    }
                     $move->appendChild($move_arg2);
                     $instr_counter++;
-
                 }
                 break;
-            case "INT2CHAR":
-                echo "lexOK";
-                EXIT(0);
             case "READ":
-                echo "lexOK";
-                EXIT(0);
-            case "STRLEN":
-                echo "lexOK";
-                EXIT(0);
-            case "TYPE":
-                echo "lexOK";
-                EXIT(0);
+                if(str_word_count($in)<4 || str_word_count($in)>5 || check_type($input_array[2])!=0 || check_1arg($input_array[1])!=0){
+                    lex_err();
+                } else {
+                    $read = $domtree->createElement("instruction");
+                    $read->setAttribute("order","$instr_counter");
+                    $read->setAttribute("opcode", "READ");
+                    $program->appendChild($read);
+
+                    $read_arg1 = $domtree->createElement("arg1", "$input_array[1]");
+                    $read_arg1->setAttribute("type", "var");
+                    $read_arg2 = $domtree->createElement("arg1", "$input_array[2]");
+                    $read_arg2->setAttribute("type", "type");
+                    $read->appendChild($read_arg1);
+                }
+                break;
             default:
                 lex_err();
             /******* 3 operandy *******
