@@ -14,10 +14,10 @@ function remove_eol($str){
     return trim(preg_replace('/\s\s+/', ' ', $str));
 }
 
-function var_or_const($in){
-    if (strpos($in, "GF@") || strpos($in, "LF@") || strpos($in, "TF@")) # variable
+function check_1arg($in){
+    if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) # variable
         return 0;
-    elseif(strpos($in, "int@") || strpos($in, "bool@") || strpos($in, "string@") || strpos($in, "nil@")) # const
+    elseif(strncmp($in, "int@", 3) ===0 || strncmp($in, "bool@", 3) === 0|| strncmp($in, "string@", 3) === 0|| strncmp($in, "nil@", 3) === 0) # const
         return 1;
     else
         return -1;
@@ -25,9 +25,9 @@ function var_or_const($in){
 
 function check_2arg($in)
 {
-    if (strlen(strstr($in, "string@")) > 0 || strlen(strstr($in, "int@")) > 0 || strlen(strstr($in, "bool@")) > 0 || strlen(strstr($in, "nil@")) > 0) {
+    if (strncmp($in, "int@", 3) ===0 || strncmp($in, "bool@", 3) === 0|| strncmp($in, "string@", 3) === 0|| strncmp($in, "nil@", 3) === 0) {
         return 0;
-    }elseif(strlen(strstr($in, "GF@")) > 0 || strlen(strstr($in, "LF@")) > 0 || strlen(strstr($in, "TF@")) > 0){
+    }elseif(strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0){
         return 1;
     } else{
         return -1;
@@ -199,10 +199,12 @@ while($in=fgets($fh)){
                     $pushs->setAttribute("opcode", "PUSHS");
                     $program->appendChild($pushs);
 
-                    $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    if(var_or_const($in)==0){
+                    if(check_1arg($input_array[1])==0){
+                        $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $pushs_arg1->setAttribute("type", "var");
-                    } elseif (var_or_const($in)==1){
+                    } elseif (check_1arg($input_array[1])==1){
+                        $input_array[1] = correct_const($input_array[1]);
+                        $pushs_arg1 = $domtree->createElement("arg1", "$input_array[1]");
                         $pushs_arg1->setAttribute("type", "const");
                     }else{
                         lex_err();
@@ -251,9 +253,9 @@ while($in=fgets($fh)){
                     $program->appendChild($write);
 
                     $write_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    if(var_or_const($in)==0){
+                    if(check_1arg($in)==0){
                         $write_arg1->setAttribute("type", "var");
-                    } elseif (var_or_const($in)==1){
+                    } elseif (check_1arg($in)==1){
                         $write_arg1->setAttribute("type", "const");
                     }else{
                         lex_err();
@@ -279,7 +281,7 @@ while($in=fgets($fh)){
                     $move->appendChild($move_arg1);
 
 
-                    if(var_or_const($in)==0){
+                    if(check_1arg($input_array[1])==0){
                         if(check_2arg($input_array[2])==0) {
                             $input_array[2]= correct_const($input_array[2]);
                             $move_arg2 = $domtree->createElement("arg2", "$input_array[2]");

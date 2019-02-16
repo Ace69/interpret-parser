@@ -1,2 +1,2 @@
             .IPPCODE19
-MOVE counterLF@ string@picovina
+MOVE GF@aa string@picovina
