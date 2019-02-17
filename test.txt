@@ -1,2 +1,4 @@
             .IPPCODE19
-ADD LF@aa int@5 int@3
+STR2INT LF@a TF@aaa string@in
+CONCAT LF@a bool@aaa GF@in
+JUMPIFEQ label bool@aaa GF@in
