@@ -17,8 +17,8 @@
       <file pinned="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/parse.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="491">
-              <caret line="446" column="24" lean-forward="true" selection-start-line="446" selection-start-column="24" selection-end-line="446" selection-end-column="24" />
+            <state relative-caret-position="325">
+              <caret line="448" column="49" selection-start-line="448" selection-start-column="49" selection-end-line="448" selection-end-column="49" />
               <folding>
                 <element signature="e#7#59#0#PHP" expanded="true" />
               </folding>
@@ -30,7 +30,7 @@
         <entry file="file://$PROJECT_DIR$/test.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="18">
-              <caret line="1" column="12" lean-forward="true" selection-start-line="1" selection-start-column="12" selection-end-line="1" selection-end-column="12" />
+              <caret line="1" column="6" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -137,7 +137,7 @@
       <workItem from="1550085229276" duration="806000" />
       <workItem from="1550247586598" duration="9847000" />
       <workItem from="1550323058887" duration="14292000" />
-      <workItem from="1550346977442" duration="9839000" />
+      <workItem from="1550346977442" duration="15167000" />
     </task>
     <task id="LOCAL-00001" summary="funkcni odstraneni komentaru">
       <created>1549984501706</created>
@@ -195,11 +195,18 @@
       <option name="project" value="LOCAL" />
       <updated>1550355081718</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="refaktor bude jindy">
+      <created>1550357562291</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1550357562291</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="95510000" />
+    <option name="totallyTimeSpent" value="100838000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -288,20 +295,21 @@
     <MESSAGE value="generovani instrukce s dvema parametry" />
     <MESSAGE value="opraveni funkci na kontrolu argumentu instrukci, nyni by snad uz mely byt funkcni" />
     <MESSAGE value="ulozeni pred refaktorem" />
-    <option name="LAST_COMMIT_MESSAGE" value="ulozeni pred refaktorem" />
+    <MESSAGE value="refaktor bude jindy" />
+    <option name="LAST_COMMIT_MESSAGE" value="refaktor bude jindy" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/test.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="18">
-          <caret line="1" column="12" lean-forward="true" selection-start-line="1" selection-start-column="12" selection-end-line="1" selection-end-column="12" />
+          <caret line="1" column="6" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/parse.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="491">
-          <caret line="446" column="24" lean-forward="true" selection-start-line="446" selection-start-column="24" selection-end-line="446" selection-end-column="24" />
+        <state relative-caret-position="325">
+          <caret line="448" column="49" selection-start-line="448" selection-start-column="49" selection-end-line="448" selection-end-column="49" />
           <folding>
             <element signature="e#7#59#0#PHP" expanded="true" />
           </folding>
