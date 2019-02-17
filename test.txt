@@ -1,4 +1,12 @@
             .IPPCODE19
-STR2INT LF@a TF@aaa string@in
-CONCAT LF@a bool@aaa GF@in
-JUMPIFEQ label bool@aaa GF@in
+CREATEFRAME
+POPS GF@aa
+PUSHFRAME
+CALL lejbl
+BREAK
+PUSHS GF@aaa
+PUSHS string@dadad
+DEFVAR TF@hugla
+RETURN
+MOVE GF@verijebl bool@bbb
+INT2CHAR LF@fghfg TF@aa
