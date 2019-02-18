@@ -121,7 +121,7 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", "var");
         } elseif(check_arg($input_array2)==1) {
-            $input_array2 = correct_const($input_array2);
+            $input_array2 = check_xml_string(correct_const($input_array2));
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", "const");
         } else
@@ -362,6 +362,13 @@ function check_corr_type($in){
         return -1;
 }
 
+function check_xml_string($in){
+    if(strncmp($in, "&", 1) ===0){
+        $in=str_replace("&","&amp;", $in);
+        return $in;
+    }else
+        return $in;
+}
 
 /********************** Arguments parsing *************************** */
 $longopts = array("help");

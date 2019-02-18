@@ -17,8 +17,8 @@
       <file pinned="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/parse.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="343">
-              <caret line="469" column="89" lean-forward="true" selection-start-line="469" selection-start-column="89" selection-end-line="469" selection-end-column="89" />
+            <state relative-caret-position="182">
+              <caret line="381" column="5" lean-forward="true" selection-start-line="381" selection-start-column="5" selection-end-line="381" selection-end-column="5" />
               <folding>
                 <element signature="e#7#59#0#PHP" expanded="true" />
               </folding>
@@ -28,11 +28,7 @@
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="54">
-              <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
-            </state>
-          </provider>
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
     </leaf>
@@ -52,8 +48,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/test" />
-        <option value="$PROJECT_DIR$/test.txt" />
         <option value="$PROJECT_DIR$/parse.php" />
+        <option value="$PROJECT_DIR$/test.txt" />
       </list>
     </option>
   </component>
@@ -145,7 +141,7 @@
       <workItem from="1550417899669" duration="6104000" />
       <workItem from="1550427372484" duration="75000" />
       <workItem from="1550427943808" duration="19520000" />
-      <workItem from="1550485701360" duration="8017000" />
+      <workItem from="1550485701360" duration="15879000" />
     </task>
     <task id="LOCAL-00001" summary="funkcni odstraneni komentaru">
       <created>1549984501706</created>
@@ -238,11 +234,25 @@
       <option name="project" value="LOCAL" />
       <updated>1550449718325</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="refaktor-pridani do funkci">
+      <created>1550494016805</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1550494016805</updated>
+    </task>
+    <task id="LOCAL-00015" summary="refaktor-dodelani funkci">
+      <created>1550500601037</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1550500601037</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="137362000" />
+    <option name="totallyTimeSpent" value="145224000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -263,7 +273,7 @@
       <window_info anchor="bottom" id="Command Line Tools Console" order="0" show_stripe_button="false" weight="0.32937366" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
-      <window_info active="true" anchor="bottom" id="Run" order="3" visible="true" weight="0.33801296" />
+      <window_info active="true" anchor="bottom" id="Run" order="3" sideWeight="0.4991699" visible="true" weight="0.33801296" />
       <window_info anchor="bottom" id="Debug" order="4" weight="0.35205182" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
@@ -271,7 +281,7 @@
       <window_info anchor="bottom" id="Docker" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.4997233" weight="0.32937366" />
-      <window_info anchor="bottom" id="Event Log" order="11" sideWeight="0.5002767" side_tool="true" weight="0.21166307" />
+      <window_info anchor="bottom" id="Event Log" order="11" sideWeight="0.5008301" side_tool="true" weight="0.33801296" />
       <window_info anchor="bottom" x="67" y="428" width="1853" height="248" id="Terminal" order="12" sideWeight="0.4997233" weight="0.21166307" />
       <window_info anchor="bottom" id="Messages" order="13" weight="0.32937366" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -336,20 +346,18 @@
     <MESSAGE value="dodelany instrukci s 3 param" />
     <MESSAGE value="brutalni refaktor" />
     <MESSAGE value="dodelani zbyvajicich funkci" />
-    <option name="LAST_COMMIT_MESSAGE" value="dodelani zbyvajicich funkci" />
+    <MESSAGE value="refaktor-pridani do funkci" />
+    <MESSAGE value="refaktor-dodelani funkci" />
+    <option name="LAST_COMMIT_MESSAGE" value="refaktor-dodelani funkci" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/test.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
-        </state>
-      </provider>
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/parse.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="343">
-          <caret line="469" column="89" lean-forward="true" selection-start-line="469" selection-start-column="89" selection-end-line="469" selection-end-column="89" />
+        <state relative-caret-position="182">
+          <caret line="381" column="5" lean-forward="true" selection-start-line="381" selection-start-column="5" selection-end-line="381" selection-end-column="5" />
           <folding>
             <element signature="e#7#59#0#PHP" expanded="true" />
           </folding>
