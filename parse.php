@@ -130,6 +130,25 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
         lex_err();
     $move->appendChild($move_arg2);
 }
+
+function generate_two_arg_read($ins, $instr_counter, $input_array, $input_array2){
+    global $read;
+    global $domtree;
+    global $program;
+    $read = $domtree->createElement("instruction");
+    $read->setAttribute("order","$instr_counter");
+    $read->setAttribute("opcode", "$ins");
+    $program->appendChild($read);
+
+    $read_arg1 = $domtree->createElement("arg1", "$input_array");
+    $read_arg1->setAttribute("type", "var");
+
+    $read_arg2 = $domtree->createElement("arg1", "$input_array2");
+    $read_arg2->setAttribute("type", "type");
+
+    $read->appendChild($read_arg1);
+    $read->appendChild($read_arg2);
+}
 function three_arg_semantic($ins, $instr_counter, $input_array, $input_array2,$input_array3){
     global $add;
     global $domtree;
@@ -258,6 +277,7 @@ $str2int->appendChild($str2int_arg2);
 $str2int->appendChild($str2int_arg3);
 }
 
+
 function three_arg_label($ins, $instr_counter, $input_array, $input_array2,$input_array3){
     global $setchar;
     global $domtree;
@@ -321,8 +341,25 @@ function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_si
     } elseif ($param3 == NULL && $label_sign == 0 && $symb_sign == 1){
         if(count($instr_arr)!=3  || check_arg($param1)!=0)
             lex_err();
+    } elseif ($param3 == NULL && $label_sign ==0 && $symb_sign ==0 ){
+        if(count($instr_arr) != 3 || check_arg($param1)!=0 || check_corr_type($param2)!=0)
+            lex_err();
+    }elseif($label_sign == 0 && $symb_sign == 1){
+        if(count($instr_arr)!=4  || check_arg($param1)!=0)
+            lex_err();
+    }elseif($label_sign == 1 && $symb_sign ==0){
+        if(count($instr_arr)!=4  || ctype_alnum($param1)==false){
+            lex_err();
         }
+    }
 
+}
+
+function check_corr_type($in){
+    if(strcmp($in, "int") === 0 || strcmp($in, "string") === 0 || strcmp($in, "bool") === 0){
+        return 0;
+    } else
+        return -1;
 }
 
 
@@ -472,241 +509,70 @@ while($in=fgets($fh)){
                 break;
 
             case "INT2CHAR":
-                if(count($input_array)!=3  || check_arg($input_array[1])!=0)
-                    lex_err();
-                 else {
-                     two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
-                     $instr_counter++;
-                 }break;
+                check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
+                two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
+                $instr_counter++;
+                break;
 
             case "READ":
-                #TODO: opravit druhy parametr a predelat do funkce
-                if(str_word_count($in)<4 || str_word_count($in)>5 || check_type($input_array[2])!=0 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    $read = $domtree->createElement("instruction");
-                    $read->setAttribute("order","$instr_counter");
-                    $read->setAttribute("opcode", "READ");
-                    $program->appendChild($read);
-
-                    $read_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    $read_arg1->setAttribute("type", "var");
-                    $input_array[2] = correct_const($input_array[2]);
-                    $read_arg2 = $domtree->createElement("arg1", "$input_array[2]");
-                    $read_arg2->setAttribute("type", "type");
-                    $read->appendChild($read_arg1);
-                    $read->appendChild($read_arg2);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], NULL, 0,0);
+                generate_two_arg_read("READ", $instr_counter, $input_array[1], $input_array[2]);
+                $instr_counter++;
                 break;
+
+            /***************v********** 3 operandy **************************** */
             case "ADD":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_semantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_semantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "SUB":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_semantic("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_semantic("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
+
             case "MUL":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_semantic("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_semantic("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
+
             case "IDIV":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_semantic("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_semantic("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
+
             case "LT":
                 #TODO: Neni osetren jeste NIL, zatim s nilem muzeme porovnavat jak pres LT, tak GT, ma ovsem fungovat pouze u EQ
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_bool("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_bool("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
+
             case "GT":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_bool("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_bool("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
+
             case "EQ":
-                if(((check_arg($input_array[1])!=0) || count($input_array)!=4 ))
-                    lex_err();
-                else {
-                    $add = $domtree->createElement("instruction");
-                    $add->setAttribute("order","$instr_counter");
-                    $add->setAttribute("opcode", "EQ");
-                    $program->appendChild($add);
-
-                    $add_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    $add_arg1->setAttribute("type", "var");
-                    if(check_if_same($input_array[2], $input_array[3])==0) {
-                        $input_array[2] = correct_const($input_array[2]);
-                        $add_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $add_arg2->setAttribute("type", "const");
-
-                        $input_array[3] = correct_const($input_array[3]);
-                        $add_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $add_arg3->setAttribute("type", "const");
-                    } elseif (check_arg($input_array[2])==0 && check_arg($input_array[3])==1) {
-                        $add_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $add_arg2->setAttribute("type", "var");
-
-                        $input_array[3] = correct_const($input_array[3]);
-                        $add_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $add_arg3->setAttribute("type", "const");
-                    } elseif(check_arg($input_array[2])==1 && check_arg($input_array[3])==0){
-                        $input_array[2] = correct_const($input_array[2]);
-                        $add_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $add_arg2->setAttribute("type", "const");
-
-                        $add_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $add_arg3->setAttribute("type", "var");
-                    } elseif(check_arg($input_array[2])==0 && check_arg($input_array[3])==0){
-                        $add_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $add_arg2->setAttribute("type", "var");
-
-                        $add_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $add_arg3->setAttribute("type", "var");
-                    }
-                    else
-                        lex_err();
-                    $add->appendChild($add_arg1);
-                    $add->appendChild($add_arg2);
-                    $add->appendChild($add_arg3);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_bool("EQ",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
             case "AND":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    $and = $domtree->createElement("instruction");
-                    $and->setAttribute("order","$instr_counter");
-                    $and->setAttribute("opcode", "AND");
-                    $program->appendChild($and);
-
-                    $and_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    $and_arg1->setAttribute("type", "var");
-                    $and->appendChild($and_arg1);
-
-                    if(check_arg($input_array[2])==0 && check_arg($input_array[3])===0){
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "var");
-                        $and->appendChild($and_arg2);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "var");
-
-                    } elseif(strncmp($input_array[2], "bool@", 5)===0 && check_arg($input_array[3])==0) {
-                        $input_array[2] = correct_const($input_array[2]);
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "const");
-                        $and->appendChild($and_arg2);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "var");
-
-                    } elseif (strncmp($input_array[3], "bool@", 5)===0 && check_arg($input_array[2])==0) {
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "var");
-                        $and->appendChild($and_arg2);
-                        $input_array[3] = correct_const($input_array[3]);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "const");
-
-                    } elseif (strncmp($input_array[2], "bool@", 5)===0 && strncmp($input_array[3], "bool@", 5)===0){
-                        $input_array[2] = correct_const($input_array[2]);
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "const");
-
-
-                        $input_array[3] = correct_const($input_array[3]);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "const");
-
-                    }
-                    else
-                        lex_err();
-                    $and->appendChild($and_arg1);
-                    $and->appendChild($and_arg2);
-                    $and->appendChild($and_arg3);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("AND",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
             case "OR":
-                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    $and = $domtree->createElement("instruction");
-                    $and->setAttribute("order","$instr_counter");
-                    $and->setAttribute("opcode", "OR");
-                    $program->appendChild($and);
-
-                    $and_arg1 = $domtree->createElement("arg1", "$input_array[1]");
-                    $and_arg1->setAttribute("type", "var");
-
-
-                    if(check_arg($input_array[2])==0 && check_arg($input_array[3])===0){
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "var");
-
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "var");
-
-                    } elseif(strncmp($input_array[2], "bool@", 5)===0 && check_arg($input_array[3])==0) {
-                        $input_array[2] = correct_const($input_array[2]);
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "const");
-
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "var");
-
-                    } elseif (strncmp($input_array[3], "bool@", 5)===0 && check_arg($input_array[2])==0) {
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "var");
-
-                        $input_array[3] = correct_const($input_array[3]);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "const");
-
-                    } elseif (strncmp($input_array[2], "bool@", 5)===0 && strncmp($input_array[3], "bool@", 5)===0){
-                        $input_array[2] = correct_const($input_array[2]);
-                        $and_arg2 = $domtree->createElement("arg2", "$input_array[2]");
-                        $and_arg2->setAttribute("type", "const");
-
-
-                        $input_array[3] = correct_const($input_array[3]);
-                        $and_arg3 = $domtree->createElement("arg3", "$input_array[3]");
-                        $and_arg3->setAttribute("type", "const");
-
-                    }
-                    else
-                        lex_err();
-                    $and->appendChild($and_arg1);
-                    $and->appendChild($and_arg2);
-                    $and->appendChild($and_arg3);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("OR",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
                 break;
-
             case "NOT":
                 if(count($input_array)!=3  || check_arg($input_array[1])!=0)
                     lex_err();
@@ -735,53 +601,41 @@ while($in=fgets($fh)){
 
                 #TODO: Odtud az dolu neresim semantiku
             case "STR2INT":
-                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_nosemantic("STR2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("STR2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "CONCAT":
 
-                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_nosemantic("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "GETCHAR":
-                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_nosemantic("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "SETCHAR":
-                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    three_arg_nosemantic("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                three_arg_nosemantic("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "JUMPIFEQ":
-                if(count($input_array)!=4  || ctype_alnum($input_array[1])==false)
-                    lex_err();
-                else {
-                    three_arg_label("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 1,0);
+                three_arg_label("JUMPIFEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
 
             case "JUMPIFNEQ":
-                if(count($input_array)!=4  || ctype_alnum($input_array[1])==false)
-                    lex_err();
-                else {
-                    three_arg_label("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 1,0);
+                three_arg_label("JUMPIFNEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                $instr_counter++;
+                break;
             default:
                 lex_err();
         }

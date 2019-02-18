@@ -1,4 +1,5 @@
            .IPPCODE19
 
-     MOVE TF@aaa bool@aa
-     STRLEN GF@aaa string@aa
+READ GF@varan string
+ADD TF@aa int@p int@5
+EQ LF@ string@a string@a
