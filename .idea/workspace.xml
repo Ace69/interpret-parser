@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f7e9c6be-43c3-4962-a2ab-bf5d9ac5ad72" name="Default Changelist" comment="dodelani zbyvajicich funkci">
+    <list default="true" id="f7e9c6be-43c3-4962-a2ab-bf5d9ac5ad72" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/parse.php" beforeDir="false" afterPath="$PROJECT_DIR$/parse.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/test.txt" afterDir="false" />
@@ -14,11 +14,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="true" current-in-tab="false">
+      <file pinned="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/parse.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="802" column="26" lean-forward="true" selection-start-line="802" selection-start-column="26" selection-end-line="802" selection-end-column="26" />
+            <state relative-caret-position="343">
+              <caret line="469" column="89" lean-forward="true" selection-start-line="469" selection-start-column="89" selection-end-line="469" selection-end-column="89" />
               <folding>
                 <element signature="e#7#59#0#PHP" expanded="true" />
               </folding>
@@ -26,11 +26,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="11" column="23" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="23" />
+            <state relative-caret-position="54">
+              <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
             </state>
           </provider>
         </entry>
@@ -42,6 +42,7 @@
       <find>cons</find>
       <find>or</find>
       <find>$split_str</find>
+      <find>counter</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -51,8 +52,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/test" />
-        <option value="$PROJECT_DIR$/parse.php" />
         <option value="$PROJECT_DIR$/test.txt" />
+        <option value="$PROJECT_DIR$/parse.php" />
       </list>
     </option>
   </component>
@@ -143,7 +144,8 @@
       <workItem from="1550407625533" duration="1080000" />
       <workItem from="1550417899669" duration="6104000" />
       <workItem from="1550427372484" duration="75000" />
-      <workItem from="1550427943808" duration="19316000" />
+      <workItem from="1550427943808" duration="19520000" />
+      <workItem from="1550485701360" duration="8017000" />
     </task>
     <task id="LOCAL-00001" summary="funkcni odstraneni komentaru">
       <created>1549984501706</created>
@@ -229,11 +231,18 @@
       <option name="project" value="LOCAL" />
       <updated>1550446425698</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="dodelani zbyvajicich funkci">
+      <created>1550449718325</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1550449718325</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="129141000" />
+    <option name="totallyTimeSpent" value="137362000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -248,7 +257,7 @@
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12506917" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12617598" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Command Line Tools Console" order="0" show_stripe_button="false" weight="0.32937366" />
@@ -330,20 +339,20 @@
     <option name="LAST_COMMIT_MESSAGE" value="dodelani zbyvajicich funkci" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/parse.php">
+    <entry file="file://$PROJECT_DIR$/test.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="802" column="26" lean-forward="true" selection-start-line="802" selection-start-column="26" selection-end-line="802" selection-end-column="26" />
-          <folding>
-            <element signature="e#7#59#0#PHP" expanded="true" />
-          </folding>
+        <state relative-caret-position="54">
+          <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test.txt">
+    <entry file="file://$PROJECT_DIR$/parse.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" column="23" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="23" />
+        <state relative-caret-position="343">
+          <caret line="469" column="89" lean-forward="true" selection-start-line="469" selection-start-column="89" selection-end-line="469" selection-end-column="89" />
+          <folding>
+            <element signature="e#7#59#0#PHP" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

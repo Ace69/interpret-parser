@@ -304,6 +304,28 @@ $setchar->appendChild($setchar_arg1);
 $setchar->appendChild($setchar_arg2);
 $setchar->appendChild($setchar_arg3);
 }
+
+function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_sign){
+    if($param1 == NULL && $param2 == NULL && $param3 == NULL) {
+        if (count($instr_arr) != 1)
+            lex_err();
+    } elseif($param2 == NULL && $param3 == NULL && $label_sign == 0 && $symb_sign == 0){
+        if(count($instr_arr)!=2  || check_arg($param1)!=0)
+            lex_err();
+    } elseif($param2 == NULL && $param3 == NULL && $label_sign == 1 && $symb_sign == 0) {
+        if (count($instr_arr) != 2 || ctype_alnum($param1) == false)
+            lex_err();
+    } elseif ($param2 == NULL && $param3 == NULL && $label_sign == 0 && $symb_sign == 1 ){
+        if(count($instr_arr)!=2)
+                lex_err();
+    } elseif ($param3 == NULL && $label_sign == 0 && $symb_sign == 1){
+        if(count($instr_arr)!=3  || check_arg($param1)!=0)
+            lex_err();
+        }
+
+}
+
+
 /********************** Arguments parsing *************************** */
 $longopts = array("help");
 $option = getopt("", $longopts);
@@ -351,146 +373,106 @@ while($in=fgets($fh)){
         switch ($instr_parse) {
             /********************** 0 operandu ******************************* */
             case "CREATEFRAME":
-                if (strcmp($instr_parse, $in) != 0)
-                    lex_err();
-                else {
-                    no_arg("CREATEFRAME",$instr_counter);
-                    $instr_counter++;
-                }
+                check_params($input_array,NULL,NULL,NULL,0,0);
+                no_arg("CREATEFRAME",$instr_counter);
+                $instr_counter++;
                 break;
             case "PUSHFRAME":
-                if (strcmp($instr_parse, $in) != 0)
-                    lex_err();
-                else {
-                    no_arg("PUSHFRAME",$instr_counter);
-                    $instr_counter++;
-                }
+                check_params($input_array,NULL,NULL,NULL,0,0);
+                no_arg("PUSHFRAME",$instr_counter);
+                $instr_counter++;
                 break;
             case "POPFRAME":
-                if (strcmp($instr_parse, $in) != 0)
-                    lex_err();
-                else {
-                    no_arg("POPFRAME",$instr_counter);
-                    $instr_counter++;
-                }
+                check_params($input_array,NULL,NULL,NULL,0,0);
+                no_arg("POPFRAME",$instr_counter);
+                $instr_counter++;
                 break;
             case "RETURN":
-                if (strcmp($instr_parse, $in) != 0)
-                    lex_err();
-                else {
-                    no_arg("RETURN",$instr_counter);
-                    $instr_counter++;
-                }
+                check_params($input_array,NULL,NULL,NULL,0,0);
+                no_arg("RETURN",$instr_counter);
+                $instr_counter++;
                 break;
             case "BREAK":
-                if (strcmp($instr_parse, $in) != 0)
-                    lex_err();
-                else {
-                    no_arg("BREAK",$instr_counter);
-                    $instr_counter++;
-                }
+                check_params($input_array,NULL,NULL,NULL,0,0);
+                no_arg("BREAK",$instr_counter);
+                $instr_counter++;
                 break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
-                if (str_word_count($in) != 3 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    one_arg_var("DEFVAR", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }
+                check_params($input_array,$input_array[1], NULL, NULL, 0,0);
+                one_arg_var("DEFVAR", $instr_counter, $input_array[1]);
+                $instr_counter++;
                 break;
 
             case "CALL":
-                if(str_word_count($in)!=2 || ctype_alnum($input_array[1])==false)
-                    lex_err();
-                else {
-                    one_arg_label("CALL", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 1,0);
+                one_arg_label("CALL", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "POPS":
-                if(str_word_count($in)!=3 || check_arg($input_array[1])!=0)
-                    lex_err();
-                else {
-                    one_arg_var("POPS", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 0,0);
+                one_arg_var("POPS", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "PUSHS":
-                if(str_word_count($in)!=3)
-                    lex_err();
-                else {
-                    one_arg_symb("PUSHS", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 0,1);
+                one_arg_symb("PUSHS", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "LABEL":
-                if(str_word_count($in)!=2 || ctype_alpha($input_array[1])==false)
-                    lex_err();
-                else {
-                    one_arg_label("LABEL", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 1,0);
+                one_arg_label("LABEL", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "JUMP":
-                if(str_word_count($in)!=2 || ctype_alpha($input_array[1])==false)
-                    lex_err();
-                else {
-                    one_arg_label("JUMP", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 1,0);
+                one_arg_label("JUMP", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "WRITE":
-                if(str_word_count($in)!=3)
-                    lex_err();
-                else {
-                    one_arg_symb("JUMP", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 0,1);
+                one_arg_symb("WRITE", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "EXIT":
-                if(str_word_count($in)!=3)
-                    lex_err();
-                else {
-                    one_arg_symb("EXIT", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 0,1);
+                one_arg_symb("EXIT", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             case "DPRINT":
-                if(str_word_count($in)!=3)
-                    lex_err();
-                else {
-                    one_arg_symb("DPRINT", $instr_counter, $input_array[1]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], NULL, NULL, 0,1);
+                one_arg_symb("DPRINT", $instr_counter, $input_array[1]);
+                $instr_counter++;
+                break;
 
             /***************v********** 2 operandy **************************** */
             case "MOVE":
-                if(str_word_count($in)<4 || str_word_count($in)>5)
-                    lex_err();
-                else {
-                    two_arg_symvar("MOVE", $instr_counter, $input_array[1], $input_array[2]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
+                two_arg_symvar("MOVE", $instr_counter, $input_array[1], $input_array[2]);
+                $instr_counter++;
+                break;
 
             case "STRLEN":
-                if(str_word_count($in)<4 || str_word_count($in)>5)
-                lex_err();
-                else {
-                    two_arg_symvar("STRLEN", $instr_counter, $input_array[1], $input_array[2]);
-                    $instr_counter++;
-                }break;
+                check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
+                two_arg_symvar("STRLEN", $instr_counter, $input_array[1], $input_array[2]);
+                $instr_counter++;
+                break;
 
             case "TYPE":
-                if(str_word_count($in)<4 || str_word_count($in)>5)
-                   lex_err();
-              else {
-                  two_arg_symvar("TYPE", $instr_counter, $input_array[1], $input_array[2]);
-                  $instr_counter++;
-              }break;
+                check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
+                two_arg_symvar("TYPE", $instr_counter, $input_array[1], $input_array[2]);
+                $instr_counter++;
+                break;
 
             case "INT2CHAR":
-                if(str_word_count($in)<4 || str_word_count($in)>6)
+                if(count($input_array)!=3  || check_arg($input_array[1])!=0)
                     lex_err();
                  else {
                      two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
@@ -518,7 +500,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "ADD":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_semantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -526,7 +508,7 @@ while($in=fgets($fh)){
                 }break;
 
             case "SUB":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_semantic("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
@@ -534,7 +516,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "MUL":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_semantic("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
@@ -542,7 +524,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "IDIV":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_semantic("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
@@ -551,7 +533,7 @@ while($in=fgets($fh)){
                 break;
             case "LT":
                 #TODO: Neni osetren jeste NIL, zatim s nilem muzeme porovnavat jak pres LT, tak GT, ma ovsem fungovat pouze u EQ
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_bool("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
@@ -559,7 +541,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "GT":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_bool("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
@@ -567,7 +549,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "EQ":
-                if(((check_arg($input_array[1])!=0) || count(array_count_values($input_array))!=4))
+                if(((check_arg($input_array[1])!=0) || count($input_array)!=4 ))
                     lex_err();
                 else {
                     $add = $domtree->createElement("instruction");
@@ -615,7 +597,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "AND":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     $and = $domtree->createElement("instruction");
@@ -670,7 +652,7 @@ while($in=fgets($fh)){
                 }
                 break;
             case "OR":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     $and = $domtree->createElement("instruction");
@@ -726,7 +708,7 @@ while($in=fgets($fh)){
                 break;
 
             case "NOT":
-                if(count(array_count_values($input_array))!=3 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=3  || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     $not = $domtree->createElement("instruction");
@@ -753,7 +735,7 @@ while($in=fgets($fh)){
 
                 #TODO: Odtud az dolu neresim semantiku
             case "STR2INT":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_nosemantic("STR2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -761,7 +743,8 @@ while($in=fgets($fh)){
                 }break;
 
             case "CONCAT":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+
+                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_nosemantic("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -769,7 +752,7 @@ while($in=fgets($fh)){
                 }break;
 
             case "GETCHAR":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_nosemantic("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -777,7 +760,7 @@ while($in=fgets($fh)){
                 }break;
 
             case "SETCHAR":
-                if(count(array_count_values($input_array))!=4 || check_arg($input_array[1])!=0)
+                if(count($input_array)!=4 || check_arg($input_array[1])!=0)
                     lex_err();
                 else {
                     three_arg_nosemantic("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -785,7 +768,7 @@ while($in=fgets($fh)){
                 }break;
 
             case "JUMPIFEQ":
-                if(count(array_count_values($input_array))!=4 || ctype_alnum($input_array[1])==false)
+                if(count($input_array)!=4  || ctype_alnum($input_array[1])==false)
                     lex_err();
                 else {
                     three_arg_label("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
@@ -793,7 +776,7 @@ while($in=fgets($fh)){
                 }break;
 
             case "JUMPIFNEQ":
-                if(count(array_count_values($input_array))!=4 || ctype_alnum($input_array[1])==false)
+                if(count($input_array)!=4  || ctype_alnum($input_array[1])==false)
                     lex_err();
                 else {
                     three_arg_label("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);

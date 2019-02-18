@@ -1,12 +1,4 @@
            .IPPCODE19
-CREATEFRAME
-POPS GF@aa
-PUSHFRAME
-CALL lejbl
-BREAK
-PUSHS GF@aaa
-PUSHS string@dadad
-DEFVAR TF@hugla
-RETURN
-MOVE GF@verijebl bool@bbb
-INT2CHAR LF@fghfg TF@aa
+
+     MOVE TF@aaa bool@aa
+     STRLEN GF@aaa string@aa
