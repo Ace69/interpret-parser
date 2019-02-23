@@ -1,5 +1,10 @@
-           .IPPCODE19
+.IppCoDE19
 
-READ GF@varan string
-ADD TF@aa int@p int@5
-EQ LF@ string@a string@a
+#kokokokot
+        CREATEFRAME
+ PushFRamE
+DEFVAR GF@temp
+ADD TF@temp int@5 int@10 # cecteni celych cisel
+    DEFVAR GF@output
+MOVE GF@output string@ahoj# v globalni promenne output je retezec "ahoj"
+POPFRAMe
