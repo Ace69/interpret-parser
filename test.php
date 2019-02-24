@@ -1,11 +1,20 @@
 <?php
 
-function generate_header(){
-    echo "<!DOCTYPE HTML><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=1920, initial-scale=1.0\"><title>IPP - Tests results</title></head><body>";
-    echo "<font size=\"3\" color=\"#006400\"><br><h1><center>IPP project - test results</center></h1></br></font>";
-    echo "<TABLE style='width: 100%;border:none;border-collapse: collapse;'>
-    <tbody><tr style='background-color:#444444;color:white;border-collapse: collapse'>
-    <th>number</th><th>Filename</th><th>Success</th><th>Error type</th></tr>";
+function generate_meta(){
+    $a= "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8;\"><title> IPP - Test Results </title> <style> td,th { border-collapse:collapse;text-align:center}</style></head><body><h1 style='color: #4e2aff;text-align: center'>IPP test results</h1><br>\n";
+    return $a;
+}
+
+function generate_header()
+{
+    $a = "<table style=\"width:100%;\"><tr style='background-color:#aeaeae;'><th>Filename</th><th>Success</th><th>Exit code</th></tr>\n";
+    return $a;
+}
+
+function generate_test($name, $success, $exit_code)
+{
+    $a = "<tr style=\"text-align: center;\"><td>$name</td><td>$success</td><td>$exit_code</td></tr></table>";
+    return $a;
 }
 
 function display_help()
@@ -20,32 +29,53 @@ function display_help()
     echo "     --int-only           - bude testován pouze skript pro interpret XML reprezentace kódu v IPPcode19 (tento parametr se nesmí kombinovat s parametrem --parse-script)\n";
 }
 
-function parse_only(){
+function parse_only()
+{
+
+    exec('php7.3 parse.php < test.src', $output, $exitCode);
+    if ($exitCode != 0) {
+        echo "Error\n";
+        exit($exitCode);
+    } else
+        file_put_contents('test.out', $output);
 
 }
+
+global $output, $exitCode;
+$test_counter = 1;
+$success = false;
 $longopts = array("help", "directory", "recursive", "parse-script", "int-script", "parse-only", "int-only");
 $option = getopt("h", $longopts);
 
-if($argc == 2) {
+if ($argc == 2) {
     if (array_key_exists("help", $option)) {
         display_help();
     } elseif (array_key_exists("directory", $option)) {
         echo "prohledame slozku";
     } elseif (array_key_exists("recursive", $option)) {
         echo "prohledame slozku rekursivne";
-    } elseif (array_key_exists("recursive", $option)) {
-        echo "prohledame slozku rekursivne";
     } elseif (array_key_exists("parse-script", $option)) {
-        echo "prohledame slozku rekursivne";
+        echo "nastavime parser pro  IPPcode19";
     } elseif (array_key_exists("int-script", $option)) {
-        echo "prohledame slozku rekursivne";
+        echo "nastavime interpret pro IPPcode19 ";
     } elseif (array_key_exists("parse-only", $option)) {
-        echo "spustime parse test\n";
+        parse_only();
     } elseif (array_key_exists("int-only", $option)) {
-        echo "prohledame slozku rekursivne";
+        echo "bude testovan pouze interpret XML reprezentace kodu IPPcode19";
     } else {
         fwrite(STDERR, "Wrong arguments!\n");
         exit(10);
     }
 }
-    generate_header();
+$out = generate_header();
+$a = generate_test("test.src", "true", "0");
+$b = generate_meta();
+parse_only();
+
+
+$fp = fopen("out.html", "r+");
+fwrite($fp, "$b");
+fwrite($fp, "$out");
+fwrite($fp, "$a");
+fclose($fp);
+
