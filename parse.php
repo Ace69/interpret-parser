@@ -370,19 +370,83 @@ function check_xml_string($in){
         return $in;
 }
 
-/********************** Arguments parsing *************************** */
-$longopts = array("help");
-$option = getopt("h", $longopts);
-if($argc == 2){
-    if(array_key_exists("help", $option)){
-        echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
+function stats_gen($file,$file_output){
+    if (is_writable($file) == true) {
+        if (file_put_contents($file, $file_output) == FALSE) {
+            fwrite(STDERR, "Something went wrong with opening file");
+            exit(11);
+        }
+    } else{
+        fwrite(STDERR, "Something went wrong with opening file");
+        exit(11);
+    }
+}
+
+function open_file($file,$instr_count){
+    if(file_exists($file)) {
+        if (is_writable($file) == true) {
+            if (file_put_contents($file, $instr_count . PHP_EOL, FILE_APPEND) == FALSE) {
+                fwrite(STDERR, "Something went wrong with opening file");
+                exit(11);
+            }
+        } else {
+            fwrite(STDERR, "Something went wrong with opening file");
+            exit(11);
+        }
     }else{
-        fwrite(STDERR, "Wrong input arguments!\n");
+        if (file_put_contents($file, $instr_count . PHP_EOL, FILE_APPEND) == FALSE) {
+            fwrite(STDERR, "Something went wrong with opening file");
+            exit(11);
+        }
+    }
+}
+/********************** Arguments parsing *************************** */
+global $file;
+$instr_counter = 1;
+$comments_counter=0;
+$jump_counter=0;
+$label_counter = 0;
+$labels = false;
+$jump = false;
+$loc = false;
+$comments = false;
+
+$longopts = array("help", "stats:","loc", "comments", "labels", "jumps");
+$option = getopt("", $longopts);
+
+if(array_key_exists("help", $option) == true) {
+    if ($argc==2) {
+        echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
+    } else{
+        fwrite(STDERR,"Wrong arguments\n");
+        exit(10);
+    }
+} elseif($argc >2 && $argc < 7) {
+    if (array_key_exists("stats", $option) == true) {
+        $file = $option["stats"];
+        open_file($file, "");
+        for($i=2;$i<$argc;$i++){
+            if($argv[$i]=="--loc"){
+                $loc=true;
+            }elseif($argv[$i]=="--comments"){
+                $comments=true;
+            }elseif($argv[$i]=="--jumps"){
+                $jump=true;
+            }
+            elseif($argv[$i]=="--labels"){
+                $labels=true;
+            }else{
+                fwrite(STDERR, "Wrong arguments\n");
+                exit(10);
+            }
+        }
+    } else {
+        fwrite(STDERR, "Wrong arguments\n");
         exit(10);
     }
 }
 /********************** Check header *************************** */
-$fh = fopen('test.txt', 'r');
+$fh = fopen('test.src', 'r');
 $line = fgets($fh);
 $line = strtoupper(trim($line));
 if($line != ".IPPCODE19"){
@@ -400,10 +464,9 @@ $program->setAttribute('language', 'IPPcode19');
 $domtree->appendChild($program);
 
 /********************** Reading from unput / delete comments *************************** */
-global $instr_counter;
-$instr_counter=1;
 while($in=fgets($fh)){
     if(strpos($in, "#", 0) !== FALSE){
+        $comments_counter++;
         $in = preg_replace('/\x23.*$/', "", $in); # find and delete "#" and characters after
         if($in === "\n"){
             $in = preg_replace('/^[ \t]*[\r\n]+/m', '', $in); # delete blank lines
@@ -436,6 +499,7 @@ while($in=fgets($fh)){
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("RETURN",$instr_counter);
                 $instr_counter++;
+                $jump_counter++;
                 break;
             case "BREAK":
                 check_params($input_array,NULL,NULL,NULL,0,0);
@@ -453,6 +517,7 @@ while($in=fgets($fh)){
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("CALL", $instr_counter, $input_array[1]);
                 $instr_counter++;
+                $jump_counter++;
                 break;
 
             case "POPS":
@@ -471,12 +536,14 @@ while($in=fgets($fh)){
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("LABEL", $instr_counter, $input_array[1]);
                 $instr_counter++;
+                $label_counter++;
                 break;
 
             case "JUMP":
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("JUMP", $instr_counter, $input_array[1]);
                 $instr_counter++;
+                $jump_counter++;
                 break;
 
             case "WRITE":
@@ -529,8 +596,10 @@ while($in=fgets($fh)){
                 break;
 
             /***************v********** 3 operandy **************************** */
+            #TODO: Do parametru funkci check_params zkusit narvat vsude $input_array[1], porotoze pokud zadam napr. u funkce ADD pouze dva parametry,
+            # tak to spadne. Dalsi moznost je zkusit to dat do try catch bloku
             case "ADD":
-                check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 0,1);
+                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
                 three_arg_semantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
@@ -637,16 +706,36 @@ while($in=fgets($fh)){
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 1,0);
                 three_arg_label("JUMPIFEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
+                $jump_counter++;
                 break;
 
             case "JUMPIFNEQ":
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[2], 1,0);
                 three_arg_label("JUMPIFNEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
+                $jump_counter++;
                 break;
             default:
                 lex_err();
         }
     }
+}
+
+/******************************* Extension ********************************/
+if($loc==true) {
+    stats_gen($file, "Number of instructions: ");
+    stats_gen($file, $instr_counter-1);
+}
+if($comments==true){
+    stats_gen($file,"Number of comments: ");
+    stats_gen($file,$comments_counter);
+}
+if($jump==true){
+    stats_gen($file,"Number of jumps: ");
+    stats_gen($file,$jump_counter);
+}
+if($labels==true){
+    stats_gen($file,"Number of labels: ");
+    stats_gen($file,$label_counter);
 }
 echo $domtree->saveXML();
