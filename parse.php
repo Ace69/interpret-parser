@@ -371,21 +371,16 @@ function check_xml_string($in){
 }
 
 function stats_gen($file,$file_output){
-    if (is_writable($file) == true) {
-        if (file_put_contents($file, $file_output) == FALSE) {
+        if (file_put_contents($file, $file_output. PHP_EOL,FILE_APPEND) == FALSE) {
             fwrite(STDERR, "Something went wrong with opening file");
             exit(11);
         }
-    } else{
-        fwrite(STDERR, "Something went wrong with opening file");
-        exit(11);
-    }
 }
 
 function open_file($file,$instr_count){
     if(file_exists($file)) {
         if (is_writable($file) == true) {
-            if (file_put_contents($file, $instr_count . PHP_EOL, FILE_APPEND) == FALSE) {
+            if (file_put_contents($file, $instr_count)!=0) {
                 fwrite(STDERR, "Something went wrong with opening file");
                 exit(11);
             }
@@ -394,57 +389,64 @@ function open_file($file,$instr_count){
             exit(11);
         }
     }else{
-        if (file_put_contents($file, $instr_count . PHP_EOL, FILE_APPEND) == FALSE) {
+        if (file_put_contents($file, $instr_count)!=0) {
             fwrite(STDERR, "Something went wrong with opening file");
             exit(11);
         }
     }
 }
 /********************** Arguments parsing *************************** */
+function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter){
+    if(array_key_exists("help", $option) == true) {
+        if ($argc==2) {
+            echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
+        } else{
+            fwrite(STDERR,"Wrong arguments\n");
+            exit(10);
+        }
+    } elseif($argc >2 && $argc < 7) {
+        if (array_key_exists("stats", $option) == true) {
+            $file = $option["stats"];
+            open_file($file, "");
+            for($i=2;$i<$argc;$i++){
+                if($argv[$i]=="--loc"){
+                    stats_gen($file, $instr_counter-1);
+                }elseif($argv[$i]=="--comments"){
+                    echo $comments_counter;
+                    stats_gen($file,$comments_counter);
+                }elseif($argv[$i]=="--jumps"){
+                    stats_gen($file,$jump_counter);
+                } elseif($argv[$i]=="--labels"){
+                    stats_gen($file,$label_counter);
+                }else{
+                    file_put_contents($file, "");
+                    fwrite(STDERR, "Wrong arguments\n");
+                    exit(10);
+                }
+            }
+        } else {
+            fwrite(STDERR, "Wrong arguments\n");
+            exit(10);
+        }
+    }
+}
+/********************** global variables *************************** */
 global $file;
 $instr_counter = 1;
 $comments_counter=0;
 $jump_counter=0;
 $label_counter = 0;
+global $labels,$loc,$comments,$jumps;
 $labels = false;
-$jump = false;
 $loc = false;
 $comments = false;
+$jumps = false;
+
 
 $longopts = array("help", "stats:","loc", "comments", "labels", "jumps");
 $option = getopt("", $longopts);
 
-if(array_key_exists("help", $option) == true) {
-    if ($argc==2) {
-        echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
-    } else{
-        fwrite(STDERR,"Wrong arguments\n");
-        exit(10);
-    }
-} elseif($argc >2 && $argc < 7) {
-    if (array_key_exists("stats", $option) == true) {
-        $file = $option["stats"];
-        open_file($file, "");
-        for($i=2;$i<$argc;$i++){
-            if($argv[$i]=="--loc"){
-                $loc=true;
-            }elseif($argv[$i]=="--comments"){
-                $comments=true;
-            }elseif($argv[$i]=="--jumps"){
-                $jump=true;
-            }
-            elseif($argv[$i]=="--labels"){
-                $labels=true;
-            }else{
-                fwrite(STDERR, "Wrong arguments\n");
-                exit(10);
-            }
-        }
-    } else {
-        fwrite(STDERR, "Wrong arguments\n");
-        exit(10);
-    }
-}
+
 /********************** Check header *************************** */
 $fh = fopen('test.src', 'r');
 $line = fgets($fh);
@@ -720,22 +722,7 @@ while($in=fgets($fh)){
         }
     }
 }
-
+check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter);
 /******************************* Extension ********************************/
-if($loc==true) {
-    stats_gen($file, "Number of instructions: ");
-    stats_gen($file, $instr_counter-1);
-}
-if($comments==true){
-    stats_gen($file,"Number of comments: ");
-    stats_gen($file,$comments_counter);
-}
-if($jump==true){
-    stats_gen($file,"Number of jumps: ");
-    stats_gen($file,$jump_counter);
-}
-if($labels==true){
-    stats_gen($file,"Number of labels: ");
-    stats_gen($file,$label_counter);
-}
+
 echo $domtree->saveXML();
