@@ -10,7 +10,7 @@ function wrong_code(){
     exit(22);
 }
 function lex_err(){
-    fwrite(STDERR, "Lex or syntax error!\n");
+    fwrite(STDERR, "Lexical/syntax error!\n");
     exit(23);
 }
 
@@ -19,8 +19,10 @@ function remove_eol($str){
 }
 
 function check_arg($in){
-    if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) # variable
+    if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) { # variable
+        check_var($in);
         return 0;
+    }
     elseif(strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0|| strncmp($in, "nil@", 4) === 0) # const
         return 1;
     else
@@ -356,6 +358,22 @@ function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$j
         }
     }
 }
+
+function check_arg_count($in,$count){
+    if(count($in)!=$count){
+        lex_err();
+    }
+}
+#TODO: Opravit, aby se zde nemohlo vyskynout napr. "+"
+function check_var($in){
+    $temp=explode("@",$in);
+    if($temp[1]!=""){
+        if (preg_match('/^[A-Za-z$%*!?_-]/i', $temp[1]) != 1) {
+            lex_err();
+        }
+
+    }
+}
 /********************** global variables *************************** */
 global $file;
 $instr_counter = 1;
@@ -413,43 +431,49 @@ while($in=fgets($fh)){
     $input_array=(explode(" ",$in));
     if($instr_parse!="") { # sip comments
         $instr_parse = strtoupper($instr_parse);
-        #TODO: Promenna musi zacinat pismenem nebo specialnim znakem
         switch ($instr_parse) {
             /********************** 0 operandu ******************************* */
             case "CREATEFRAME":
+                check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("CREATEFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "PUSHFRAME":
+                check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("PUSHFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "POPFRAME":
+                check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("POPFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "RETURN":
+                check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("RETURN",$instr_counter);
                 $instr_counter++;
                 $jump_counter++;
                 break;
             case "BREAK":
+                check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
                 no_arg("BREAK",$instr_counter);
                 $instr_counter++;
                 break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,0);
                 one_arg_var("DEFVAR", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "CALL":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("CALL", $instr_counter, $input_array[1]);
                 $instr_counter++;
@@ -457,18 +481,21 @@ while($in=fgets($fh)){
                 break;
 
             case "POPS":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,0);
                 one_arg_var("POPS", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "PUSHS":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
                 one_arg_symb("PUSHS", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "LABEL":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("LABEL", $instr_counter, $input_array[1]);
                 $instr_counter++;
@@ -476,6 +503,7 @@ while($in=fgets($fh)){
                 break;
 
             case "JUMP":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
                 one_arg_label("JUMP", $instr_counter, $input_array[1]);
                 $instr_counter++;
@@ -483,18 +511,21 @@ while($in=fgets($fh)){
                 break;
 
             case "WRITE":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
                 one_arg_symb("WRITE", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "EXIT":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
                 one_arg_symb("EXIT", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "DPRINT":
+                check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
                 one_arg_symb("DPRINT", $instr_counter, $input_array[1]);
                 $instr_counter++;
@@ -502,130 +533,151 @@ while($in=fgets($fh)){
 
             /***************v********** 2 operandy **************************** */
             case "MOVE":
+                check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
                 two_arg_symvar("MOVE", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "STRLEN":
+                check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
                 two_arg_symvar("STRLEN", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "TYPE":
+                check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
                 two_arg_symvar("TYPE", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "INT2CHAR":
+                check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
                 two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "READ":
+                check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,0);
                 two_arg_read("READ", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             /***************v********** 3 operandy **************************** */
-            #TODO: Do parametru funkci check_params zkusit narvat vsude $input_array[1], porotoze pokud zadam napr. u funkce ADD pouze dva parametry,
-            # tak to spadne. Dalsi moznost je zkusit to dat do try catch bloku
             case "ADD":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "SUB":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "MUL":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "IDIV":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "LT":
+                check_arg_count($input_array,4);
                 #TODO: Neni osetren jeste NIL, zatim s nilem muzeme porovnavat jak pres LT, tak GT, ma ovsem fungovat pouze u EQ
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "GT":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "EQ":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("EQ",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
+
             case "AND":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("AND",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
+
             case "OR":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("OR",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
+
             case "NOT":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1],0,1);
+                check_arg_count($input_array,3);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3],0,1);
                 two_arg_symvar("NOT", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
-                #TODO: Odtud az dolu neresim semantiku
             case "STRI2INT":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("STRI2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "CONCAT":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "GETCHAR":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "SETCHAR":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 0,1);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
                 three_arg_nosemantic("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "JUMPIFEQ":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 1,0);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 1,0);
                 three_arg_label("JUMPIFEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 $jump_counter++;
                 break;
 
             case "JUMPIFNEQ":
-                check_params($input_array,$input_array[1], $input_array[1], $input_array[1], 1,0);
+                check_arg_count($input_array,4);
+                check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 1,0);
                 three_arg_label("JUMPIFNEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 $jump_counter++;
