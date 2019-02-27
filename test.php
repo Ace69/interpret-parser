@@ -1,24 +1,25 @@
 <?php
 
 function generate_meta(){
-    $a= "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8;\"><title> IPP - Test Results </title> <style> td,th { border-collapse:collapse;text-align:center}</style></head><body><h1 style='color: #4e2aff;text-align: center'>IPP test results</h1><br>\n";
-    return $a;
+    echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8;\"><title> IPP - Test Results </title> <style> td,th { border-collapse:collapse;text-align:center}</style></head><body><h1 style='color:#4e2aff;text-align: center'>IPP test results</h1><br>\n";
 }
 
-function generate_header()
-{
-    $a = "<table style=\"width:100%;\"><tr style='background-color:#aeaeae;'><th>Filename</th><th>Success</th><th>Exit code</th></tr>\n";
-    return $a;
+function generate_header(){
+    echo "<table style=\"width:100%;\"><tr style='background-color:#aeaeae;'><th>Filename</th><th>Success</th><th>Exit code</th></tr>\n";
 }
 
-function generate_test($name, $success, $exit_code)
-{
-    $a = "<tr style=\"text-align: center;\"><td>$name</td><td>$success</td><td>$exit_code</td></tr></table>";
-    return $a;
+function generate_test($name, $success, $exit_code){
+    echo "<tr style=\"text-align: center;\"><td>$name</td><td>$success</td><td>$exit_code</td></tr></table>";
 }
 
-function display_help()
-{
+function generate_perc($percentage){
+    if($percentage == "100")
+        echo "><tr><th>Percentage</th></tr><tr><td style='color: #086418'>$percentage</td>></tr></table>";
+    else
+        echo "<table style=\"width:80%\"><tr><th>Percentage</th></tr><tr><td style='color: #ae1923'>$percentage</td>></tr></table>";
+}
+
+function display_help(){
     echo "  php7.3 test.php [--help] [--recursive] [--parse-script=] [--int-script=] [--directory=]\n";
     echo "     --help     		    - Zobrazi napovedu\n";
     echo "     --directory=path     - testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skriptprochází aktuální adresář)\n";
@@ -29,8 +30,11 @@ function display_help()
     echo "     --int-only           - bude testován pouze skript pro interpret XML reprezentace kódu v IPPcode19 (tento parametr se nesmí kombinovat s parametrem --parse-script)\n";
 }
 
-function parse_only()
-{
+function directory(){
+    echo "prohledame slozku";
+}
+
+function parse_only(){
 
     exec('php7.3 parse.php < test.src', $output, $exitCode);
     if ($exitCode != 0) {
@@ -51,7 +55,7 @@ if ($argc == 2) {
     if (array_key_exists("help", $option)) {
         display_help();
     } elseif (array_key_exists("directory", $option)) {
-        echo "prohledame slozku";
+        directory();
     } elseif (array_key_exists("recursive", $option)) {
         echo "prohledame slozku rekursivne";
     } elseif (array_key_exists("parse-script", $option)) {
@@ -67,15 +71,8 @@ if ($argc == 2) {
         exit(10);
     }
 }
-$out = generate_header();
-$a = generate_test("test.src", "true", "0");
-$b = generate_meta();
+generate_meta();
+generate_test("test.src", "true", "0");
+generate_perc("100");
 parse_only();
-
-
-$fp = fopen("out.html", "r+");
-fwrite($fp, "$b");
-fwrite($fp, "$out");
-fwrite($fp, "$a");
-fclose($fp);
 
