@@ -100,12 +100,27 @@ function one_arg_symb($ins, $instr_counter, $input_array){
         $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
         $pushs_arg1->setAttribute("type", "var");
     } elseif (check_arg($input_array)==1){
+        $type = get_type($input_array);
         $input_array = check_xml_string(correct_const($input_array));
         $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
-        $pushs_arg1->setAttribute("type", "const");
+        $pushs_arg1->setAttribute("type", $type);
     }else
         lex_err();
     $pushs->appendChild($pushs_arg1);
+}
+
+function get_type($in){
+    if(strncmp($in, "int@", 3)===0){
+        return "int";
+    }elseif (strncmp($in,"string@",7)===0){
+        return "string";
+    }elseif (strncmp($in,"bool@",5)===0){
+        return "bool";
+    }elseif (strncmp($in,"nil@",4)===0){
+        return "nil";
+    } else
+         lex_err();
+    return 0;
 }
 
 function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
@@ -127,9 +142,10 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", "var");
         } elseif(check_arg($input_array2)==1) {
+            $type = get_type($input_array2);
             $input_array2 = check_xml_string(correct_const($input_array2));
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
-            $move_arg2->setAttribute("type", "const");
+            $move_arg2->setAttribute("type", $type);
         } else
             lex_err();
     } else
@@ -179,24 +195,29 @@ function three_arg_nosemantic($ins, $instr_counter, $input_array, $input_array2,
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", "var");
 
+        $type = get_type($input_array3);
         $input_array3 = check_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", "const");
+        $str2int_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
+
+        $type=get_type($input_array2);
         $input_array2 = check_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", "const");
+        $str2int_arg2->setAttribute("type", $type);
 
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
+        $type = get_type($input_array2);
         $input_array2 = check_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", "const");
+        $str2int_arg2->setAttribute("type", $type);
 
+        $type2=get_type($input_array3);
         $input_array3 = check_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", "const");
+        $str2int_arg3->setAttribute("type", $type2);
     }else
         lex_err();
 
@@ -228,24 +249,28 @@ function three_arg_label($ins, $instr_counter, $input_array, $input_array2,$inpu
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
         $setchar_arg2->setAttribute("type", "var");
 
+        $type = get_type($input_array3);
         $input_array3 = check_xml_string(correct_const($input_array3));
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", "const");
+        $setchar_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
+        $type = get_type($input_array2);
         $input_array2 = check_xml_string(correct_const($input_array2));
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", "const");
+        $setchar_arg2->setAttribute("type", $type);
 
-        $setchar_arg3 = $domtree->createElement("arg3", "$input_array[3]");
+        $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
         $setchar_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
+        $type = get_type($input_array2);
         $input_array2 = check_xml_string(correct_const($input_array2));
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", "const");
+        $setchar_arg2->setAttribute("type", $type);
 
+        $type2 = get_type($input_array3);
         $input_array3 = check_xml_string(correct_const($input_array3));
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", "const");
+        $setchar_arg3->setAttribute("type", $type2);
     }else
         lex_err();
 $setchar->appendChild($setchar_arg1);
@@ -276,7 +301,7 @@ function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_si
         if(count($instr_arr)!=4  || check_arg($param1)!=0)
             lex_err();
     }elseif($label_sign == 1 && $symb_sign ==0){
-        if(count($instr_arr)!=4  || ctype_alnum($param1)==false){
+        if(count($instr_arr)!=4  || check_var($param1)){
             lex_err();
         }
     }
@@ -373,6 +398,7 @@ function check_var($in){
         }
 
     }
+    return 0;
 }
 /********************** global variables *************************** */
 global $file;
@@ -431,6 +457,7 @@ while($in=fgets($fh)){
     $input_array=(explode(" ",$in));
     if($instr_parse!="") { # sip comments
         $instr_parse = strtoupper($instr_parse);
+        #TODO !!!! Misto const vypisovat konkretni typy !!!!
         switch ($instr_parse) {
             /********************** 0 operandu ******************************* */
             case "CREATEFRAME":
@@ -634,7 +661,7 @@ while($in=fgets($fh)){
 
             case "NOT":
                 check_arg_count($input_array,3);
-                check_params($input_array,$input_array[1], $input_array[2], $input_array[3],0,1);
+                check_params($input_array,$input_array[1], $input_array[2], NULL,0,1);
                 two_arg_symvar("NOT", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
