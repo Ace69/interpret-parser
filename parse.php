@@ -6,12 +6,16 @@
  */
 
 function wrong_code(){
-    fwrite(STDERR, "Wrong instruction!\n");
+    //fwrite(STDERR, "Wrong instruction!\n");
     exit(22);
 }
 function lex_err(){
-    fwrite(STDERR, "Lexical/syntax error!\n");
+    //fwrite(STDERR, "Lexical/syntax error!\n");
     exit(23);
+}
+function arg_err(){
+    //fwrite(STDERR, "Wrong arguments!\n");
+    exit(10);
 }
 
 function remove_eol($str){
@@ -68,6 +72,7 @@ function one_arg_var($ins, $instr_counter, $input_array){
     $pops->setAttribute("opcode", "$ins");
     $program->appendChild($pops);
 
+    $input_array = corr_xml_string($input_array);
     $pops_arg1 = $domtree->createElement("arg1", "$input_array");
     $pops_arg1->setAttribute("type", "var");
     $pops->appendChild($pops_arg1);
@@ -82,6 +87,7 @@ function one_arg_label($ins, $instr_counter, $input_array){
     $call->setAttribute("opcode", "$ins");
     $program->appendChild($call);
 
+    $input_array = corr_xml_string($input_array);
     $call_arg1 = $domtree->createElement("arg1", "$input_array");
     $call_arg1->setAttribute("type", "label");
     $call->appendChild($call_arg1);
@@ -97,11 +103,13 @@ function one_arg_symb($ins, $instr_counter, $input_array){
     $program->appendChild($pushs);
 
     if(check_arg($input_array)==0){
+
+        $input_array = corr_xml_string($input_array);
         $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
         $pushs_arg1->setAttribute("type", "var");
     } elseif (check_arg($input_array)==1){
         $type = get_type($input_array);
-        $input_array = check_xml_string(correct_const($input_array));
+        $input_array = corr_xml_string(correct_const($input_array));
         $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
         $pushs_arg1->setAttribute("type", $type);
     }else
@@ -132,6 +140,7 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
     $move->setAttribute("opcode", "$ins");
     $program->appendChild($move);
 
+    $input_array = corr_xml_string($input_array);
     $move_arg1 = $domtree->createElement("arg1", "$input_array");
     $move_arg1->setAttribute("type", "var");
     $move->appendChild($move_arg1);
@@ -139,11 +148,12 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
 
     if(check_arg($input_array)==0){
         if(check_arg($input_array2)==0) {
+            $input_array2 = corr_xml_string($input_array2);
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", "var");
         } elseif(check_arg($input_array2)==1) {
             $type = get_type($input_array2);
-            $input_array2 = check_xml_string(correct_const($input_array2));
+            $input_array2 = corr_xml_string(correct_const($input_array2));
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", $type);
         } else
@@ -162,6 +172,7 @@ function two_arg_read($ins, $instr_counter, $input_array, $input_array2){
     $read->setAttribute("opcode", "$ins");
     $program->appendChild($read);
 
+    $input_array = corr_xml_string($input_array);
     $read_arg1 = $domtree->createElement("arg1", "$input_array");
     $read_arg1->setAttribute("type", "var");
 
@@ -182,12 +193,15 @@ function three_arg_nosemantic($ins, $instr_counter, $input_array, $input_array2,
     $str2int->setAttribute("opcode", "$ins");
     $program->appendChild($str2int);
 
+    $input_array = corr_xml_string($input_array);
     $str2int_arg1 = $domtree->createElement("arg1", "$input_array");
     $str2int_arg1->setAttribute("type", "var");
     if(check_arg($input_array2)==0 && check_arg($input_array3)==0){
+        $input_array2 = corr_xml_string($input_array2);
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", "var");
 
+        $input_array3 = corr_xml_string($input_array3);
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", "var");
 
@@ -196,26 +210,27 @@ function three_arg_nosemantic($ins, $instr_counter, $input_array, $input_array2,
         $str2int_arg2->setAttribute("type", "var");
 
         $type = get_type($input_array3);
-        $input_array3 = check_xml_string(correct_const($input_array3));
+        $input_array3 = corr_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
 
         $type=get_type($input_array2);
-        $input_array2 = check_xml_string(correct_const($input_array2));
+        $input_array2 = corr_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", $type);
 
+        $input_array3 = corr_xml_string($input_array3);
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
         $type = get_type($input_array2);
-        $input_array2 = check_xml_string(correct_const($input_array2));
+        $input_array2 = corr_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", $type);
 
         $type2=get_type($input_array3);
-        $input_array3 = check_xml_string(correct_const($input_array3));
+        $input_array3 = corr_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", $type2);
     }else
@@ -236,39 +251,44 @@ function three_arg_label($ins, $instr_counter, $input_array, $input_array2,$inpu
     $setchar->setAttribute("opcode", "$ins");
     $program->appendChild($setchar);
 
+    $input_array = corr_xml_string($input_array);
     $setchar_arg1 = $domtree->createElement("arg1", "$input_array");
     $setchar_arg1->setAttribute("type", "label");
     if(check_arg($input_array2)==0 && check_arg($input_array3)==0){
+        $input_array2 = corr_xml_string($input_array2);
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
         $setchar_arg2->setAttribute("type", "var");
 
+        $input_array3 = corr_xml_string($input_array3);
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
         $setchar_arg3->setAttribute("type", "var");
 
     } elseif (check_arg($input_array2)==0 && check_arg($input_array3)==1){
+        $input_array2 = corr_xml_string($input_array2);
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
         $setchar_arg2->setAttribute("type", "var");
 
         $type = get_type($input_array3);
-        $input_array3 = check_xml_string(correct_const($input_array3));
+        $input_array3 = corr_xml_string(correct_const($input_array3));
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
         $setchar_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
         $type = get_type($input_array2);
-        $input_array2 = check_xml_string(correct_const($input_array2));
+        $input_array2 = corr_xml_string(correct_const($input_array2));
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
         $setchar_arg2->setAttribute("type", $type);
 
+        $input_array3 = corr_xml_string($input_array3);
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
         $setchar_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
         $type = get_type($input_array2);
-        $input_array2 = check_xml_string(correct_const($input_array2));
+        $input_array2 = corr_xml_string(correct_const($input_array2));
         $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
         $setchar_arg2->setAttribute("type", $type);
 
         $type2 = get_type($input_array3);
-        $input_array3 = check_xml_string(correct_const($input_array3));
+        $input_array3 = corr_xml_string(correct_const($input_array3));
         $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
         $setchar_arg3->setAttribute("type", $type2);
     }else
@@ -286,7 +306,7 @@ function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_si
         if(count($instr_arr)!=2  || check_arg($param1)!=0)
             lex_err();
     } elseif($param2 == NULL && $param3 == NULL && $label_sign == 1 && $symb_sign == 0) {
-        if (count($instr_arr) != 2 || ctype_alnum($param1) == false)
+        if (count($instr_arr) != 2 || check_label($param1))
             lex_err();
     } elseif ($param2 == NULL && $param3 == NULL && $label_sign == 0 && $symb_sign == 1 ){
         if(count($instr_arr)!=2)
@@ -301,7 +321,7 @@ function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_si
         if(count($instr_arr)!=4  || check_arg($param1)!=0)
             lex_err();
     }elseif($label_sign == 1 && $symb_sign ==0){
-        if(count($instr_arr)!=4  || check_var($param1)){
+        if(count($instr_arr)!=4  || check_label($param1)){
             lex_err();
         }
     }
@@ -315,12 +335,8 @@ function check_corr_type($in){
         return -1;
 }
 
-function check_xml_string($in){
-    if(strncmp($in, "&", 1) ===0){
-        $in=str_replace("&","&amp;", $in);
-        return $in;
-    }else
-        return $in;
+function corr_xml_string($in){
+    return str_replace(array('&', '<', '>', '\'', '"'), array('&amp;', '&lt;', '&gt;', '&apos;', '&quot;'), $in);
 }
 
 function stats_gen($file,$file_output){
@@ -353,10 +369,8 @@ function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$j
     if(array_key_exists("help", $option) == true) {
         if ($argc==2) {
             echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
-        } else{
-            fwrite(STDERR,"Wrong arguments\n");
-            exit(10);
-        }
+        } else
+            arg_err();
     } elseif($argc >2 && $argc < 7) {
         if (array_key_exists("stats", $option) == true) {
             $file = $option["stats"];
@@ -365,22 +379,16 @@ function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$j
                 if($argv[$i]=="--loc"){
                     stats_gen($file, $instr_counter-1);
                 }elseif($argv[$i]=="--comments"){
-                    echo $comments_counter;
                     stats_gen($file,$comments_counter);
                 }elseif($argv[$i]=="--jumps"){
                     stats_gen($file,$jump_counter);
                 } elseif($argv[$i]=="--labels"){
                     stats_gen($file,$label_counter);
-                }else{
-                    file_put_contents($file, "");
-                    fwrite(STDERR, "Wrong arguments\n");
-                    exit(10);
-                }
+                }else
+                    arg_err();
             }
-        } else {
-            fwrite(STDERR, "Wrong arguments\n");
-            exit(10);
-        }
+        } else
+            arg_err();
     }
 }
 
@@ -389,16 +397,26 @@ function check_arg_count($in,$count){
         lex_err();
     }
 }
-#TODO: Opravit, aby se zde nemohlo vyskynout napr. "+"
+
 function check_var($in){
     $temp=explode("@",$in);
     if($temp[1]!=""){
-        if (preg_match('/^[A-Za-z$%*!?_-]/i', $temp[1]) != 1) {
+        if (preg_match('/^[A-Za-z$&%*!?_-][0-9A-Za-z$&%*!?_-]*$/', $temp[1]) != 1)
             lex_err();
-        }
-
     }
     return 0;
+}
+
+function check_label($in){
+    if (preg_match('/^[A-Za-z$&%*!?_-][0-9A-Za-z$&%*!?_-]*$/', $in) != 1)
+        lex_err();
+    return 0;
+}
+
+function f_close($fh){
+    if (is_resource($fh)) {
+        fclose($fh);
+    }
 }
 /********************** global variables *************************** */
 global $file;
@@ -407,18 +425,14 @@ $comments_counter=0;
 $jump_counter=0;
 $label_counter = 0;
 global $labels,$loc,$comments,$jumps;
-$labels = false;
-$loc = false;
-$comments = false;
-$jumps = false;
+$labels = $loc = $comments = $jumps = FALSE;
 
 
 $longopts = array("help", "stats:","loc", "comments", "labels", "jumps");
 $option = getopt("", $longopts);
 
-
 /********************** Check header *************************** */
-$fh = fopen('test.src', 'r');
+$fh = fopen('php://stdin', 'r');
 $line = fgets($fh);
 if(strpos($line, "#", 0) !== FALSE){
     $comments_counter++;
@@ -429,7 +443,7 @@ if(strpos($line, "#", 0) !== FALSE){
 }
 $line = strtoupper(trim($line));
 if($line != ".IPPCODE19"){
-    fwrite(STDERR, "Wrong header!\n");
+    //fwrite(STDERR, "Wrong header!\n");
     exit(21);
 }
 
@@ -457,7 +471,7 @@ while($in=fgets($fh)){
     $input_array=(explode(" ",$in));
     if($instr_parse!="") { # sip comments
         $instr_parse = strtoupper($instr_parse);
-        #TODO !!!! Misto const vypisovat konkretni typy !!!!
+        #TODO Dodelat osestreni, co muze byt v konstante, promenne, atd
         switch ($instr_parse) {
             /********************** 0 operandu ******************************* */
             case "CREATEFRAME":
@@ -714,7 +728,13 @@ while($in=fgets($fh)){
         }
     }
 }
-check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter);
+
+f_close($fh);
+
 /******************************* Extension ********************************/
+if($argc < 7)
+    check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter);
+else
+    arg_err();
 
 echo $domtree->saveXML();
