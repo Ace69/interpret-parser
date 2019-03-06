@@ -370,35 +370,44 @@ function open_file($file,$instr_count){
     }
 }
 /********************** Arguments parsing *************************** */
-function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter){
+function check_arguments($option,$argc){
+    global $extension;
+    $extension = false;
     //var_dump($option);
     //exit(1);
-    if(array_key_exists("help", $option) == true) {
-        if ($argc==2) {
-            echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
-        } else
-            arg_err();
-    } elseif($argc >2 && $argc < 7) {
-        if (array_key_exists("stats", $option) == true) {
-            $file = $option["stats"];
-            open_file($file, "");
-            for($i=2;$i<$argc;$i++){
-                if($argv[$i]=="--loc"){
-                    stats_gen($file, $instr_counter-1);
-                }elseif($argv[$i]=="--comments"){
-                    stats_gen($file,$comments_counter);
-                }elseif($argv[$i]=="--jumps"){
-                    stats_gen($file,$jump_counter);
-                } elseif($argv[$i]=="--labels"){
-                    stats_gen($file,$label_counter);
-                }else {
-                    unlink($file);
-                    arg_err();
-                }
-            }
+    if($argc !=1) {
+        if (array_key_exists("help", $option) == true) {
+            if ($argc == 2) {
+                echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
+            } else
+                arg_err();
+        } elseif (array_key_exists("stats", $option) == true) {
+            $extension = true;
         } else
             arg_err();
     }
+}
+
+function extension($option,$instr_counter,$comments_counter,$jump_counter,$label_counter,$argc,$argv){
+    if (array_key_exists("stats", $option) == true) {
+        $file = $option["stats"];
+        open_file($file, "");
+        for($i=2;$i<$argc;$i++){
+            if($argv[$i]=="--loc"){
+                stats_gen($file, $instr_counter-1);
+            }elseif($argv[$i]=="--comments"){
+                stats_gen($file,$comments_counter);
+            }elseif($argv[$i]=="--jumps"){
+                stats_gen($file,$jump_counter);
+            } elseif($argv[$i]=="--labels"){
+                stats_gen($file,$label_counter);
+            }else {
+                unlink($file);
+                arg_err();
+            }
+        }
+    } else
+        arg_err();
 }
 
 function get_type($in){
@@ -484,13 +493,15 @@ $jump_counter=0;
 $label_counter = 0;
 global $labels,$loc,$comments,$jumps;
 $labels = $loc = $comments = $jumps = FALSE;
+global $extension;
+$extension = false;
 
 
 $longopts = array("help", "stats:","loc", "comments", "labels", "jumps");
 $option = getopt("", $longopts);
-
+check_arguments($option,$argc);
 /********************** Check header *************************** */
-$fh = fopen('php://stdin', 'r');
+$fh = fopen('read_test.src', 'r');
 $line = fgets($fh);
 if(strpos($line, "#", 0) !== FALSE){
     $comments_counter++;
@@ -529,7 +540,6 @@ while($in=fgets($fh)){
     $input_array=(explode(" ",$in));
     if($instr_parse!="") { # sip comments
         $instr_parse = strtoupper($instr_parse);
-        #TODO Dodelat osestreni, co muze byt v konstante, promenne, atd
         switch ($instr_parse) {
             /********************** 0 operandu ******************************* */
             case "CREATEFRAME":
@@ -789,10 +799,9 @@ while($in=fgets($fh)){
 
 f_close($fh);
 
+
 /******************************* Extension ********************************/
-if($argc < 7)
-    check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter);
-else
-    arg_err();
+if($extension)
+    extension($option,$instr_counter,$comments_counter,$jump_counter,$label_counter,$argc,$argv);
 
 echo $domtree->saveXML();
