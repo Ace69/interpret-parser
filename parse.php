@@ -6,15 +6,15 @@
  */
 
 function wrong_code(){
-    //fwrite(STDERR, "Wrong instruction!\n");
+    fwrite(STDERR, "Wrong instruction!\n");
     exit(22);
 }
 function lex_err(){
-    //fwrite(STDERR, "Lexical/syntax error!\n");
+    fwrite(STDERR, "Lexical/syntax error!\n");
     exit(23);
 }
 function arg_err(){
-    //fwrite(STDERR, "Wrong arguments!\n");
+    fwrite(STDERR, "Wrong arguments!\n");
     exit(10);
 }
 
@@ -53,7 +53,7 @@ function check_if_same($in, $in2){
         return -1;
 }
 
-function no_arg($ins, $instr_counter){
+function generate_no_arg($ins, $instr_counter){
     global $createframe ;
     global $domtree;
     global $program;
@@ -63,7 +63,7 @@ function no_arg($ins, $instr_counter){
     $program->appendChild($createframe);
 }
 
-function one_arg_var($ins, $instr_counter, $input_array){
+function generate_one_arg_var($ins, $instr_counter, $input_array){
     global $pops;
     global $domtree;
     global $program;
@@ -78,7 +78,7 @@ function one_arg_var($ins, $instr_counter, $input_array){
     $pops->appendChild($pops_arg1);
 }
 
-function one_arg_label($ins, $instr_counter, $input_array){
+function generate_one_arg_label($ins, $instr_counter, $input_array){
     global $call;
     global $domtree;
     global $program;
@@ -93,7 +93,7 @@ function one_arg_label($ins, $instr_counter, $input_array){
     $call->appendChild($call_arg1);
 }
 
-function one_arg_symb($ins, $instr_counter, $input_array){
+function generate_one_arg_symb($ins, $instr_counter, $input_array){
     global $pushs;
     global $domtree;
     global $program;
@@ -109,6 +109,9 @@ function one_arg_symb($ins, $instr_counter, $input_array){
         $pushs_arg1->setAttribute("type", "var");
     } elseif (check_arg($input_array)==1){
         $type = get_type($input_array);
+        check_string_escape($input_array,$type);
+        check_bool($input_array,$type);
+        check_nil($input_array,$type);
         $input_array = corr_xml_string(correct_const($input_array));
         $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
         $pushs_arg1->setAttribute("type", $type);
@@ -117,21 +120,7 @@ function one_arg_symb($ins, $instr_counter, $input_array){
     $pushs->appendChild($pushs_arg1);
 }
 
-function get_type($in){
-    if(strncmp($in, "int@", 3)===0){
-        return "int";
-    }elseif (strncmp($in,"string@",7)===0){
-        return "string";
-    }elseif (strncmp($in,"bool@",5)===0){
-        return "bool";
-    }elseif (strncmp($in,"nil@",4)===0){
-        return "nil";
-    } else
-         lex_err();
-    return 0;
-}
-
-function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
+function generate_two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
     global $move;
     global $domtree;
     global $program;
@@ -153,6 +142,9 @@ function two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
             $move_arg2->setAttribute("type", "var");
         } elseif(check_arg($input_array2)==1) {
             $type = get_type($input_array2);
+            check_string_escape($input_array2,$type);
+            check_bool($input_array2,$type);
+            check_nil($input_array2,$type);
             $input_array2 = corr_xml_string(correct_const($input_array2));
             $move_arg2 = $domtree->createElement("arg2", "$input_array2");
             $move_arg2->setAttribute("type", $type);
@@ -176,7 +168,7 @@ function two_arg_read($ins, $instr_counter, $input_array, $input_array2){
     $read_arg1 = $domtree->createElement("arg1", "$input_array");
     $read_arg1->setAttribute("type", "var");
 
-    $read_arg2 = $domtree->createElement("arg1", "$input_array2");
+    $read_arg2 = $domtree->createElement("arg2", "$input_array2");
     $read_arg2->setAttribute("type", "type");
 
     $read->appendChild($read_arg1);
@@ -184,7 +176,7 @@ function two_arg_read($ins, $instr_counter, $input_array, $input_array2){
 }
 
 
-function three_arg_nosemantic($ins, $instr_counter, $input_array, $input_array2,$input_array3){
+function generate_three_arg($ins, $instr_counter, $input_array, $input_array2,$input_array3){
     global $str2int;
     global $domtree;
     global $program;
@@ -210,26 +202,39 @@ function three_arg_nosemantic($ins, $instr_counter, $input_array, $input_array2,
         $str2int_arg2->setAttribute("type", "var");
 
         $type = get_type($input_array3);
+        check_string_escape($input_array3,$type);
+        check_bool($input_array3,$type);
+        check_nil($input_array3,$type);
         $input_array3 = corr_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
 
         $type=get_type($input_array2);
+        check_string_escape($input_array2,$type);
+        check_bool($input_array2,$type);
+        check_nil($input_array2,$type);
         $input_array2 = corr_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", $type);
+
 
         $input_array3 = corr_xml_string($input_array3);
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
         $type = get_type($input_array2);
+        check_string_escape($input_array2,$type);
+        check_bool($input_array2,$type);
+        check_nil($input_array2,$type);
         $input_array2 = corr_xml_string(correct_const($input_array2));
         $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
         $str2int_arg2->setAttribute("type", $type);
 
         $type2=get_type($input_array3);
+        check_string_escape($input_array3,$type2);
+        check_bool($input_array3,$type2);
+        check_nil($input_array3,$type2);
         $input_array3 = corr_xml_string(correct_const($input_array3));
         $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
         $str2int_arg3->setAttribute("type", $type2);
@@ -242,7 +247,7 @@ $str2int->appendChild($str2int_arg3);
 }
 
 
-function three_arg_label($ins, $instr_counter, $input_array, $input_array2,$input_array3){
+function generate_three_arg_label($ins, $instr_counter, $input_array, $input_array2,$input_array3){
     global $setchar;
     global $domtree;
     global $program;
@@ -366,6 +371,8 @@ function open_file($file,$instr_count){
 }
 /********************** Arguments parsing *************************** */
 function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$jump_counter,$label_counter){
+    //var_dump($option);
+    //exit(1);
     if(array_key_exists("help", $option) == true) {
         if ($argc==2) {
             echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
@@ -384,12 +391,28 @@ function check_arguments($option,$argc,$argv,$instr_counter,$comments_counter,$j
                     stats_gen($file,$jump_counter);
                 } elseif($argv[$i]=="--labels"){
                     stats_gen($file,$label_counter);
-                }else
+                }else {
+                    unlink($file);
                     arg_err();
+                }
             }
         } else
             arg_err();
     }
+}
+
+function get_type($in){
+    if(strncmp($in, "int@", 3)===0){
+        return "int";
+    }elseif (strncmp($in,"string@",7)===0){
+        return "string";
+    }elseif (strncmp($in,"bool@",5)===0){
+        return "bool";
+    }elseif (strncmp($in,"nil@",4)===0){
+        return "nil";
+    } else
+        lex_err();
+    return 0;
 }
 
 function check_arg_count($in,$count){
@@ -418,6 +441,41 @@ function f_close($fh){
         fclose($fh);
     }
 }
+
+function check_string_escape($in,$type){
+    if($type==="string") {
+        $ret = strpos($in, "\\");
+        if ($ret !== false) {
+            $count = substr_count($in, "\\", 0);
+            $ret = explode("\\", $in);
+
+            for ($i = 1; $i < $count + 1; $i++) {
+                $retval = substr($ret[$i], 0, 3);
+                if (ctype_digit($retval) == false)
+                    lex_err();
+            }
+        }
+    }
+}
+
+function check_bool($in,$type){
+    if($type==="bool") {
+        $in = explode("@", $in);
+        if ($in[1] !== "true" && $in[1] !== "false") {
+            lex_err();
+        }
+    }
+}
+
+function check_nil($in,$type){
+    if ($type === "nil") {
+        $in = explode("@", $in);
+        if ($in[1] !== "nil") {
+            lex_err();
+        }
+    }
+}
+
 /********************** global variables *************************** */
 global $file;
 $instr_counter = 1;
@@ -477,46 +535,46 @@ while($in=fgets($fh)){
             case "CREATEFRAME":
                 check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
-                no_arg("CREATEFRAME",$instr_counter);
+                generate_no_arg("CREATEFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "PUSHFRAME":
                 check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
-                no_arg("PUSHFRAME",$instr_counter);
+                generate_no_arg("PUSHFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "POPFRAME":
                 check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
-                no_arg("POPFRAME",$instr_counter);
+                generate_no_arg("POPFRAME",$instr_counter);
                 $instr_counter++;
                 break;
             case "RETURN":
                 check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
-                no_arg("RETURN",$instr_counter);
+                generate_no_arg("RETURN",$instr_counter);
                 $instr_counter++;
                 $jump_counter++;
                 break;
             case "BREAK":
                 check_arg_count($input_array,1);
                 check_params($input_array,NULL,NULL,NULL,0,0);
-                no_arg("BREAK",$instr_counter);
+                generate_no_arg("BREAK",$instr_counter);
                 $instr_counter++;
                 break;
             /***************v********** 1 operand **************************** */
             case "DEFVAR":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,0);
-                one_arg_var("DEFVAR", $instr_counter, $input_array[1]);
+                generate_one_arg_var("DEFVAR", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "CALL":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
-                one_arg_label("CALL", $instr_counter, $input_array[1]);
+                generate_one_arg_label("CALL", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 $jump_counter++;
                 break;
@@ -524,21 +582,21 @@ while($in=fgets($fh)){
             case "POPS":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,0);
-                one_arg_var("POPS", $instr_counter, $input_array[1]);
+                generate_one_arg_var("POPS", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "PUSHS":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
-                one_arg_symb("PUSHS", $instr_counter, $input_array[1]);
+                generate_one_arg_symb("PUSHS", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "LABEL":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
-                one_arg_label("LABEL", $instr_counter, $input_array[1]);
+                generate_one_arg_label("LABEL", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 $label_counter++;
                 break;
@@ -546,7 +604,7 @@ while($in=fgets($fh)){
             case "JUMP":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 1,0);
-                one_arg_label("JUMP", $instr_counter, $input_array[1]);
+                generate_one_arg_label("JUMP", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 $jump_counter++;
                 break;
@@ -554,21 +612,21 @@ while($in=fgets($fh)){
             case "WRITE":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
-                one_arg_symb("WRITE", $instr_counter, $input_array[1]);
+                generate_one_arg_symb("WRITE", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "EXIT":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
-                one_arg_symb("EXIT", $instr_counter, $input_array[1]);
+                generate_one_arg_symb("EXIT", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
             case "DPRINT":
                 check_arg_count($input_array,2);
                 check_params($input_array,$input_array[1], NULL, NULL, 0,1);
-                one_arg_symb("DPRINT", $instr_counter, $input_array[1]);
+                generate_one_arg_symb("DPRINT", $instr_counter, $input_array[1]);
                 $instr_counter++;
                 break;
 
@@ -576,28 +634,28 @@ while($in=fgets($fh)){
             case "MOVE":
                 check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
-                two_arg_symvar("MOVE", $instr_counter, $input_array[1], $input_array[2]);
+                generate_two_arg_symvar("MOVE", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "STRLEN":
                 check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
-                two_arg_symvar("STRLEN", $instr_counter, $input_array[1], $input_array[2]);
+                generate_two_arg_symvar("STRLEN", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "TYPE":
                 check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
-                two_arg_symvar("TYPE", $instr_counter, $input_array[1], $input_array[2]);
+                generate_two_arg_symvar("TYPE", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "INT2CHAR":
                 check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL, 0,1);
-                two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
+                generate_two_arg_symvar("INT2CHAR", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
@@ -612,28 +670,28 @@ while($in=fgets($fh)){
             case "ADD":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("ADD", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "SUB":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("SUB",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "MUL":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("MUL",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "IDIV":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("IDIV",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
@@ -641,77 +699,77 @@ while($in=fgets($fh)){
                 check_arg_count($input_array,4);
                 #TODO: Neni osetren jeste NIL, zatim s nilem muzeme porovnavat jak pres LT, tak GT, ma ovsem fungovat pouze u EQ
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("LT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "GT":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("GT",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "EQ":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("EQ",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("EQ",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "AND":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("AND",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("AND",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "OR":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("OR",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("OR",$instr_counter,$input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "NOT":
                 check_arg_count($input_array,3);
                 check_params($input_array,$input_array[1], $input_array[2], NULL,0,1);
-                two_arg_symvar("NOT", $instr_counter, $input_array[1], $input_array[2]);
+                generate_two_arg_symvar("NOT", $instr_counter, $input_array[1], $input_array[2]);
                 $instr_counter++;
                 break;
 
             case "STRI2INT":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("STRI2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("STRI2INT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "CONCAT":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("CONCAT", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "GETCHAR":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("GETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "SETCHAR":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 0,1);
-                three_arg_nosemantic("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg("SETCHAR", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 break;
 
             case "JUMPIFEQ":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 1,0);
-                three_arg_label("JUMPIFEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg_label("JUMPIFEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 $jump_counter++;
                 break;
@@ -719,7 +777,7 @@ while($in=fgets($fh)){
             case "JUMPIFNEQ":
                 check_arg_count($input_array,4);
                 check_params($input_array,$input_array[1], $input_array[2], $input_array[3], 1,0);
-                three_arg_label("JUMPIFNEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
+                generate_three_arg_label("JUMPIFNEQ", $instr_counter, $input_array[1], $input_array[2], $input_array[3]);
                 $instr_counter++;
                 $jump_counter++;
                 break;
