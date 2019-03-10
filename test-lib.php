@@ -76,7 +76,7 @@ function argCheck($option, $argc)
 /** Generovani testu do HTML */
 function generateTest($name, $exit_code, $exp_code, $success){
     if($success!="true")
-        echo "<td>$name</td><td>$exit_code</td><td>$exp_code</td><td style='background-color: #c8110c'>$success</td></tr>";
+        echo "<td style='width: 25%'>$name</td><td style='width: 25%'>$exit_code</td><td style='width: 25%;'>$exp_code</td><td style='background-color: #c8110c; width: 25%'>$success</td></tr>";
     else
         echo "<td>$name</td><td>$exit_code</td><td>$exp_code</td><td style='background-color: #3fc82c'>$success</td></tr>";}
 
@@ -93,7 +93,7 @@ function displayHelp(){
 }
 /** Vygenerovani podkladu HTML */
 function generateMeta(){
-    echo "<!DOCTYPE HTML>";
+    echo "<!DOCTYPE html>";
     echo "<html>";
     echo "<head>";
     echo "<meta charset=\"utf-8\">";
@@ -105,7 +105,7 @@ function generateMeta(){
 /** Funkce na vygenerovani hlavicky HTML */
 function generateHeader(){
     echo "<h1 style='text-align: center; color: #eaf8f5;'>IPP - Test results</h1>";
-    echo "<table style=\"width:100%;\"><tr style='background-color:#aeaeae;'><th>Filename</th><th>Exit code</th><th>Expected exit code</th><th>Success</th></tr>\n";
+    echo "<table border='1'; style=\"width:100%;\"><tr style='background-color:#aeaeae; text-align: justify-all'><th>Filename</th><th>Exit code</th><th>Expected exit code</th><th>Success</th></tr>\n";
 }
 
 /** Jeste uplne nefunguje, doladit kde tabulka bude */
@@ -142,7 +142,7 @@ function parseDirectory($filename, $parser = "parse.php")
         generateTest($filename,$parseExitCode,$rc,"false");
     if(is_file("$ref_file.out.log"))
         unlink("$ref_file.out.log");
-    fclose($temp_file);
+    unlink($path);
 }
 
 function intDirectory($filename, $interpret = "interpret.py"){
@@ -171,11 +171,12 @@ function intDirectory($filename, $interpret = "interpret.py"){
         generateTest($filename,$intExitCode,$rc,"true");
     } else
         generateTest($filename,$intExitCode,$rc,"false");
-    fclose($temp_file);
+    unlink($path);
 }
 
 function bothDirectory($filename,$parser,$int)
 {
+    $intExitCode = 0;
     if ($parser == null)
         $parser = "parse.php";
     if ($int == null)
@@ -202,8 +203,10 @@ function bothDirectory($filename,$parser,$int)
         if ($rc[1] == $intExitCode && $intOut == $out)
             generateTest("$ref_file", $intExitCode, $rc[1], "true");
         else
-            generateTest("$ref_file", $intExitCode, $rc[1], "false");
-    }
+            generateTest("$filename", $intExitCode, $rc[1], "false");
+    } else
+        generateTest("$filename", $intExitCode, $rc[1], "false");
+    unlink($path);
 }
 
 function checkIfExists($in){
@@ -232,6 +235,18 @@ function intSearchDir($direc_path, $int = "interpret.py"){
     $test_files = glob("$direc_path/*.src");
     foreach ($test_files as $filename){
         intDirectory($filename,$int);
+    }
+}
+
+function bothRecursive($dir, $parse, $int){
+    if (!is_dir($dir))
+        fileError();
+    $it = new RecursiveDirectoryIterator($dir);
+    $allowed = array("src");
+    foreach (new RecursiveIteratorIterator($it) as $file) {
+        if (in_array(substr($file, strrpos($file, '.') + 1), $allowed)) {
+            bothDirectory($file,$parse,$int);
+        }
     }
 }
 
@@ -285,10 +300,11 @@ function generateOutput($dir_flag, $recurse_flag, $parse_script_flag, $int_scrip
             fileError();
         isValidInt($int_path);
         if ($dir_flag && $recurse_flag) {
-
+            bothRecursive($direc_path,$parser_path,$int_path);
         } elseif ($dir_flag && !$recurse_flag) {
             bothSearchDir($direc_path,$parser_path,$int_path);
         } elseif (!$dir_flag && $recurse_flag) {
+            bothRecursive($folder,$parser_path,$int_path);
 
         }
     } elseif ($parse_script_flag && $parse_only_flag && !$int_script_flag && !$int_only_flag) {
@@ -322,18 +338,23 @@ function generateOutput($dir_flag, $recurse_flag, $parse_script_flag, $int_scrip
             fileError();
         isValidParser($parser_path);
         if ($dir_flag && $recurse_flag) {
-
+            bothRecursive($direc_path,$parser_path,null);
         } elseif ($dir_flag && !$recurse_flag) {
             bothSearchDir($direc_path,$parser_path,null);
         } elseif (!$dir_flag && $recurse_flag) {
-
+            bothRecursive($folder,$parser_path,null);
         }
     }elseif (!$parse_script_flag && !$parse_only_flag && $int_script_flag && !$int_only_flag) {
+        $int_path = intPath($option);
+        if(!is_file($int_path))
+            fileError();
+        isValidInt($int_path);
         if ($dir_flag && $recurse_flag) {
+            bothRecursive($direc_path,null,$int_path);
         } elseif ($dir_flag && !$recurse_flag) {
-
+            bothSearchDir($direc_path,null,$int_path);
         } elseif (!$dir_flag && $recurse_flag) {
-
+            bothRecursive($folder,null,$int_path);
         }
     }elseif (!$parse_script_flag && $parse_only_flag && !$int_script_flag && !$int_only_flag) {
         if ($dir_flag && $recurse_flag) {
@@ -346,18 +367,22 @@ function generateOutput($dir_flag, $recurse_flag, $parse_script_flag, $int_scrip
         }
     }elseif (!$parse_script_flag && !$parse_only_flag && !$int_script_flag && $int_only_flag) {
         if ($dir_flag && $recurse_flag) {
+            intRecursive($direc_path,null);
         } elseif ($dir_flag && !$recurse_flag) {
-
+            intSearchDir($direc_path,null);
         } elseif (!$dir_flag && $recurse_flag) {
-
+            intRecursive($folder,null);
         }
     }elseif ($dir_flag && $recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
         // zdan dir a recurse
+        bothRecursive($direc_path,null,null);
 
     }elseif($dir_flag && !$recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
         //zdan pouze dir
+        bothSearchDir($direc_path,null,null);
     }elseif (!$dir_flag && $recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
         // zadan pouze recurse
+        bothRecursive($folder,null,null);
 
     }else
         argError();
