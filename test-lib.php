@@ -10,39 +10,47 @@ $direc_path="";
 $parser_path="";
 $folder = getcwd();
 
-function file_err(){
-    fwrite(STDERR,"Invalid input file/directory");
+function fileError(){
+    fwrite(STDERR,"Invalid input file/directory\n");
     exit(11);
 }
 
-$longopts = array("help", "directory:", "recursive", "parse-script:", "int-script", "parse-only", "int-only");
+$longopts = array("help", "directory:", "recursive", "parse-script:", "int-script:", "parse-only", "int-only");
 $option = getopt("", $longopts);
-function arg_err(){
+function argError(){
     fwrite(STDERR,"Wrong arguemtns\n");
     exit(10);
 }
 
-function parse_path($option)
+function parsePath($option)
 {
     $file = $option["parse-script"];
     $parse_path = realpath($file);
-    if ($parse_path) {
-        //c
+    if ($parse_path)
         return $parse_path;
-    } else
-        file_err();
+     else
+        fileError();
 }
 
-function check_arg($option,$argc)
+function intPath($option){
+    $file = $option["int-script"];
+    $int_path = realpath($file);
+    if($int_path)
+        return $int_path;
+    else
+        fileError();
+}
+
+function argCheck($option, $argc)
 {
     global $dir_flag, $recurs_flag, $int_script_flag, $parse_only_flag, $int_only_flag, $direc_path,$parse_script_flag;
 
     if ($argc != 1) {
         if (array_key_exists("help", $option)) {
             if ($argc == 2)
-                display_help();
+                displayHelp();
             else
-                arg_err();
+                argError();
         }
         if (array_key_exists("directory", $option)) {
             $direc_path = $option["directory"];
@@ -61,19 +69,19 @@ function check_arg($option,$argc)
                 $int_only_flag = true;
             }
         } else
-            arg_err();
+            argError();
 }
 
 
 /** Generovani testu do HTML */
-function generate_test($name,$exit_code,$exp_code,$success){
+function generateTest($name, $exit_code, $exp_code, $success){
     if($success!="true")
         echo "<td>$name</td><td>$exit_code</td><td>$exp_code</td><td style='background-color: #c8110c'>$success</td></tr>";
     else
         echo "<td>$name</td><td>$exit_code</td><td>$exp_code</td><td style='background-color: #3fc82c'>$success</td></tr>";}
 
 /** Print --help */
-function display_help(){
+function displayHelp(){
     echo "  php7.3 test.php [--help] [--recursive] [--parse-script=] [--int-script=] [--directory=]\n";
     echo "     --help     		    - Zobrazi napovedu\n";
     echo "     --directory=path     - testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skriptprochází aktuální adresář)\n";
@@ -84,7 +92,7 @@ function display_help(){
     echo "     --int-only           - bude testován pouze skript pro interpret XML reprezentace kódu v IPPcode19 (tento parametr se nesmí kombinovat s parametrem --parse-script)\n";
 }
 /** Vygenerovani podkladu HTML */
-function generate_meta(){
+function generateMeta(){
     echo "<!DOCTYPE HTML>";
     echo "<html>";
     echo "<head>";
@@ -95,43 +103,21 @@ function generate_meta(){
     echo "<body style='background-color: #4f9fff; text-align: center'>";
 }
 /** Funkce na vygenerovani hlavicky HTML */
-function generate_header(){
+function generateHeader(){
     echo "<h1 style='text-align: center; color: #eaf8f5;'>IPP - Test results</h1>";
     echo "<table style=\"width:100%;\"><tr style='background-color:#aeaeae;'><th>Filename</th><th>Exit code</th><th>Expected exit code</th><th>Success</th></tr>\n";
 }
 
 /** Jeste uplne nefunguje, doladit kde tabulka bude */
-function generate_perc($percentage){
+function generatePerc($percentage){
 
 }
-function parse_only($filename)
+
+function parseDirectory($filename, $parser = "parse.php")
 {
     $ref_file =  explode(".",$filename); // rozdelime si nazev souboru na nazev a priponu
     $ref_file = $ref_file[0];                   // ulozime si cast nazvu testu pred priponou, napr. read_test
-    global $output,$ec,$diff_out;
-    $temp_file = tmpfile(); // vytvoreni temp souboru
-    $path = stream_get_meta_data($temp_file)['uri']; // cesta k temp souboru
-
-    exec("cat $filename | php7.3 parse.php", $output, $parseExitCode);
-    $output = implode("\n", $output);
-    fwrite($temp_file,$output);
-    rewind($temp_file); // zapsani vystupu parseru do temp souboru
-
-    exec("cat $ref_file.rc",$rc); // vypsani .rc souboru do promenne rc
-    $rc = $rc[0];
-    exec("java -jar /home/jakub/Plocha/IPP/xml/jexamxml.jar $ref_file.out $path diffs.xml options",$diff_out,$ec);
-    if($ec == "0" && $rc == $parseExitCode){ // Pokud JExamXML vrati 0(shoda) a exit kod parseru a refercni exit kod se shoduji
-        generate_test($filename,$parseExitCode,$rc,"true");
-    } else
-        generate_test($filename,$parseExitCode,$rc,"false");
-    fclose($temp_file);
-}
-
-function directory($filename,$parser = "parse.php")
-{
-    $ref_file =  explode(".",$filename); // rozdelime si nazev souboru na nazev a priponu
-    $ref_file = $ref_file[0];                   // ulozime si cast nazvu testu pred priponou, napr. read_test
-    global $output,$ec,$diff_out;
+    //global $output,$ec,$diff_out;
     $temp_file = tmpfile(); // vytvoreni temp souboru
     $path = stream_get_meta_data($temp_file)['uri']; // cesta k temp souboru
 
@@ -140,134 +126,239 @@ function directory($filename,$parser = "parse.php")
     fwrite($temp_file,$output);
     rewind($temp_file); // zapsani vystupu parseru do temp souboru
 
-    exec("cat $ref_file.rc",$rc); // vypsani .rc souboru do promenne rc
+    if(is_file("$ref_file.rc"))
+        exec("cat $ref_file.rc",$rc); // vypsani .rc souboru do promenne rc
+    else {
+        file_put_contents("$ref_file.rc", "0");
+        $rc = array("0");
+    }
     $rc = $rc[0];
+    if(!is_file("$ref_file.out"))
+        touch("$ref_file.out");
     exec("java -jar /home/jakub/Plocha/IPP/xml/jexamxml.jar $ref_file.out $path diffs.xml options",$diff_out,$ec);
     if($ec == "0" && $rc == $parseExitCode){ // Pokud JExamXML vrati 0(shoda) a exit kod parseru a refercni exit kod se shoduji
-        generate_test($filename,$parseExitCode,$rc,"true");
+        generateTest($filename,$parseExitCode,$rc,"true");
     } else
-        generate_test($filename,$parseExitCode,$rc,"false");
+        generateTest($filename,$parseExitCode,$rc,"false");
+    if(is_file("$ref_file.out.log"))
+        unlink("$ref_file.out.log");
     fclose($temp_file);
 }
 
-function search_dir($direc_path,$parser = "parse.php"){
-    $test_files = glob("$direc_path/*.src");
-    foreach ($test_files as $filename){
-        directory($filename,$parser);
+function intDirectory($filename, $interpret = "interpret.py"){
+    $ref_file =  explode(".",$filename); // rozdelime si nazev souboru na nazev a priponu
+    $ref_file = $ref_file[0];                   // ulozime si cast nazvu testu pred priponou, napr. read_test
+   // global $output,$ec,$diff_out;
+    $temp_file = tmpfile(); // vytvoreni temp souboru
+    $path = stream_get_meta_data($temp_file)['uri']; // cesta k temp souboru
+
+    exec("cat $filename | python3.6 $interpret", $output, $intExitCode);
+    $output = implode("\n", $output);
+    fwrite($temp_file,$output);
+    rewind($temp_file); // zapsani vystupu interpretu do temp souboru
+
+    if(is_file("$ref_file.rc"))
+        exec("cat $ref_file.rc",$rc); // vypsani .rc souboru do promenne rc
+    else {
+        file_put_contents("$ref_file.rc", "0");
+        $rc = array("0");
+    }
+    $rc = $rc[0];
+    if(!is_file("$ref_file.out"))
+        touch("$ref_file.out");
+    exec("diff $ref_file.out $path ",$diff_out,$ec);
+    if($ec == "0" && $rc == $intExitCode){ // Pokud Diff vrati 0(shoda) a exit kod parseru a refercni exit kod se shoduji
+        generateTest($filename,$intExitCode,$rc,"true");
+    } else
+        generateTest($filename,$intExitCode,$rc,"false");
+    fclose($temp_file);
+}
+
+function bothDirectory($filename,$parser,$int)
+{
+    if ($parser == null)
+        $parser = "parse.php";
+    if ($int == null)
+        $int = "interpret.py";
+
+
+    $ref_file = explode(".", $filename); // rozdelime si nazev souboru na nazev a priponu
+    $ref_file = $ref_file[0];                   // ulozime si cast nazvu testu pred priponou, napr. read_test
+    $temp_file = tmpfile(); // vytvoreni temp souboru
+    $path = stream_get_meta_data($temp_file)['uri']; // cesta k temp souboru
+    checkIfExists($ref_file); // pripadne dogenerovani chybejicich souboru
+
+    exec("cat $filename | php7.3 $parser", $parseOut, $parseExitCode);
+    exec("cat $ref_file.rc", $rc); // vypsani .rc souboru do promenne rc
+
+    $parseOut = implode("\n", $parseOut);
+    fwrite($temp_file, $parseOut);
+    rewind($temp_file); // zapsani vystupu interpretu do temp souboru
+    if ($rc[0] == $parseExitCode) {
+        // budeme pokracovat v interpretaci
+        exec("python3.6 $int --source=$path", $intOut, $intExitCode);
+        exec("cat $ref_file.rc", $rc);
+        exec("cat $ref_file.out", $out);
+        if ($rc[1] == $intExitCode && $intOut == $out)
+            generateTest("$ref_file", $intExitCode, $rc[1], "true");
+        else
+            generateTest("$ref_file", $intExitCode, $rc[1], "false");
     }
 }
 
-function recursiveScan($dir){
+function checkIfExists($in){
+    if(!is_file("$in.in"))
+        touch("$in.in");
+    if(!is_file("$in.out"))
+        touch("$in.out");
+    if(!is_file("in.rc"))
+        file_put_contents("$in.rc","0");
+}
+
+function bothSearchDir($direc_path,$parser,$int){
+    $test_files = glob("$direc_path/*.src");
+    foreach ($test_files as $filename){
+        bothDirectory($filename,$parser,$int);
+    }
+}
+function parseSearchDir($direc_path, $parser = "parse.php"){
+    $test_files = glob("$direc_path/*.src");
+    foreach ($test_files as $filename){
+        parseDirectory($filename,$parser);
+    }
+}
+
+function intSearchDir($direc_path, $int = "interpret.py"){
+    $test_files = glob("$direc_path/*.src");
+    foreach ($test_files as $filename){
+        intDirectory($filename,$int);
+    }
+}
+
+function intRecursive($dir, $int = "interpret.py") {
     if (!is_dir($dir))
-        file_err();
+        fileError();
+    $it = new RecursiveDirectoryIterator($dir);
+    $allowed = array("src");
+    foreach (new RecursiveIteratorIterator($it) as $file) {
+        if (in_array(substr($file, strrpos($file, '.') + 1), $allowed)) {
+            parseDirectory($file, $int);
+        }
+    }
+}
+
+function parseRecursive($dir, $parser = "parse.php"){
+    if (!is_dir($dir))
+        fileError();
     $it = new RecursiveDirectoryIterator($dir);
         $allowed = array("src");
         foreach (new RecursiveIteratorIterator($it) as $file) {
             if (in_array(substr($file, strrpos($file, '.') + 1), $allowed)) {
-                directory($file);
+                parseDirectory($file,$parser);
             }
         }
 }
 
-function is_valid_parser($in){
+function isValidParser($in){
     $in = explode(".",$in);
     if($in[1]!=="php")
-        file_err();
+        fileError();
 }
 
-function generate_output($dir_flag, $recurse_flag,$parse_script_flag, $int_script_flag,$parse_only_flag,$int_only_flag){
+function isValidInt($in){
+    $in = explode(".",$in);
+    if($in[1]!=="py")
+        fileError();
+}
+
+function generateOutput($dir_flag, $recurse_flag, $parse_script_flag, $int_script_flag, $parse_only_flag, $int_only_flag){
     global $option, $direc_path,$folder;
 
     if ($parse_script_flag && $int_script_flag && !$parse_only_flag && !$int_only_flag) {
-        //prvni case
-        // nastavime jak interpret,tak parser
+        $parser_path=parsePath($option);
+        if(!is_file($parser_path))
+            fileError();
+        isValidParser($parser_path);
+
+        $int_path = intPath($option);
+        if(!is_file($int_path))
+            fileError();
+        isValidInt($int_path);
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
+
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+            bothSearchDir($direc_path,$parser_path,$int_path);
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+
         }
     } elseif ($parse_script_flag && $parse_only_flag && !$int_script_flag && !$int_only_flag) {
-        // druhy case
-        $parser_path=parse_path($option); // do promenne parser_path ulozi cestu k validnimu parseru, tj ktery existuje
+        $parser_path=parsePath($option); // do promenne parser_path ulozi cestu k validnimu parseru, tj ktery existuje
         if(!is_file($parser_path))
-            file_err();
-        is_valid_parser($parser_path);
+            fileError();
+        isValidParser($parser_path);
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
-            search_dir($direc_path);
-            recursiveScan($direc_path);
+            parseRecursive($direc_path,$parser_path);
         } elseif ($dir_flag && !$recurse_flag) {
-            search_dir($direc_path);
-            // budeme prohledavat zadany adresar normalne
+            parseSearchDir($direc_path,$parser_path);
         } elseif (!$dir_flag && $recurse_flag) {
-            search_dir($folder);
-            recursiveScan($folder);
-            //budeme prohledavat aktualni adresar rekurzivne
+            parseRecursive($folder,$parser_path);
         }
     } elseif ($int_script_flag && $int_only_flag && !$parse_script_flag && !$parse_only_flag) {
-        //treti case
-        // nastavime interpret a budeme testovat pouze interpret
+        $int_path = intPath($option);
+        if(!is_file($int_path))
+            fileError();
+        isValidInt($int_path);
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
+            intSearchDir($direc_path);
+            intRecursive($direc_path,$int_path);
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+            intSearchDir($direc_path,$int_path);
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+            intRecursive($folder,$int_path);
         }
     } elseif ($parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
-        // 4 cast
-        // nastavime pouze parser
+        $parser_path=parsePath($option); // do promenne parser_path ulozi cestu k validnimu parseru, tj ktery existuje
+        if(!is_file($parser_path))
+            fileError();
+        isValidParser($parser_path);
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
+
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+            bothSearchDir($direc_path,$parser_path,null);
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+
         }
     }elseif (!$parse_script_flag && !$parse_only_flag && $int_script_flag && !$int_only_flag) {
-        // 4 cast
-        // nastavime pouze interpret
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+
         }
     }elseif (!$parse_script_flag && $parse_only_flag && !$int_script_flag && !$int_only_flag) {
-        // 5 cast
-        // budeme testovat pouze parser
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
+            parseSearchDir($direc_path);
+            parseRecursive($direc_path);
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+            parseSearchDir($direc_path);
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+            parseRecursive($folder);
         }
     }elseif (!$parse_script_flag && !$parse_only_flag && !$int_script_flag && $int_only_flag) {
-        // 6 cast
-        // budeme testovat pouze interpret
         if ($dir_flag && $recurse_flag) {
-            // budeme prohledavat zadany adresar rekuzrivne
         } elseif ($dir_flag && !$recurse_flag) {
-            // budeme prohledavat zadany adresar normalne
+
         } elseif (!$dir_flag && $recurse_flag) {
-            //budeme prohledavat aktualni adresar rekurzivne
+
         }
     }elseif ($dir_flag && $recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
         // zdan dir a recurse
-        //search_dir($direc_path);
-        recursiveScan($direc_path);
+
     }elseif($dir_flag && !$recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
-        search_dir($direc_path);
         //zdan pouze dir
     }elseif (!$dir_flag && $recurse_flag && !$parse_script_flag && !$parse_only_flag && !$int_script_flag && !$int_only_flag) {
         // zadan pouze recurse
-        //search_dir($folder);
-        recursiveScan($folder);
 
     }else
-        arg_err();
+        argError();
 }

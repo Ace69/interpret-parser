@@ -4,22 +4,10 @@
  * Date: 3.3.19
  * Time: 0:30
  */
-include_once 'test-lib.php';
 
-function parse_script(){
-    return 0;
-}
-function int_script(){
-    return 0;
-}
-function recursive(){
-    return 0;
-}
-function int_only(){
-    return 0;
-}
+require_once 'test-lib.php';
 
-global $output, $parseExitCode,$diff_out,$ec,$success;
+//global $output, $parseExitCode,$diff_out,$ec,$success;
 $recurs_flag = false;
 $dir_flag = false;
 $parse_script_flag = false;
@@ -32,11 +20,15 @@ $success = false;
 
 
 
-generate_meta();
-generate_header();
-check_arg($option,$argc);
-#TODO: Rekurze funguje, ale doresit, pokud je zadana jenom rekurse, bez dir
-generate_output($dir_flag, $recurs_flag,$parse_script_flag, $int_script_flag,$parse_only_flag,$int_only_flag);
+generateMeta();
+generateHeader();
+argCheck($option,$argc);
+#TODO: Rekurze funguje, ale doresit, pokud je zadana jenom rekurse bez dir
+# Vyresit rekurzi pro arguemnt "both"
+//bothDirectory($folder,"parsik.php","intik.py");
+
+
+generateOutput($dir_flag, $recurs_flag,$parse_script_flag, $int_script_flag,$parse_only_flag,$int_only_flag);
 //recursiveScan($direc_path);
 
 
