@@ -56,160 +56,160 @@ function check_if_same($in, $in2){
 }
 /*Function that generate instruction with one parameter*/
 function generate_no_arg($ins, $instr_counter){
-    global $createframe ;
+    global $intruction ;
     global $domtree;
     global $program;
-    $createframe = $domtree->createElement("instruction");
-    $createframe->setAttribute("order","$instr_counter");
-    $createframe->setAttribute("opcode", "$ins");
-    $program->appendChild($createframe);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 }
 
 function generate_one_arg_var($ins, $instr_counter, $input_array){
-    global $pops;
+    global $intruction;
     global $domtree;
     global $program;
-    $pops = $domtree->createElement("instruction");
-    $pops->setAttribute("order","$instr_counter");
-    $pops->setAttribute("opcode", "$ins");
-    $program->appendChild($pops);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $pops_arg1 = $domtree->createElement("arg1", "$input_array");
-    $pops_arg1->setAttribute("type", "var");
-    $pops->appendChild($pops_arg1);
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "var");
+    $intruction->appendChild($intruction_arg1);
 }
 
 function generate_one_arg_label($ins, $instr_counter, $input_array){
-    global $call;
+    global $intruction;
     global $domtree;
     global $program;
-    $call = $domtree->createElement("instruction");
-    $call->setAttribute("order","$instr_counter");
-    $call->setAttribute("opcode", "$ins");
-    $program->appendChild($call);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $call_arg1 = $domtree->createElement("arg1", "$input_array");
-    $call_arg1->setAttribute("type", "label");
-    $call->appendChild($call_arg1);
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "label");
+    $intruction->appendChild($intruction_arg1);
 }
 
 function generate_one_arg_symb($ins, $instr_counter, $input_array){
-    global $pushs;
+    global $intruction;
     global $domtree;
     global $program;
-    $pushs = $domtree->createElement("instruction");
-    $pushs->setAttribute("order","$instr_counter");
-    $pushs->setAttribute("opcode", "$ins");
-    $program->appendChild($pushs);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     if(check_arg($input_array)==0){
 
         $input_array = corr_xml_string($input_array);
-        $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
-        $pushs_arg1->setAttribute("type", "var");
+        $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+        $intruction_arg1->setAttribute("type", "var");
     } elseif (check_arg($input_array)==1){
         $type = get_type($input_array);
         check_string_escape($input_array,$type);
         check_bool($input_array,$type);
         check_nil($input_array,$type);
         $input_array = corr_xml_string(correct_const($input_array));
-        $pushs_arg1 = $domtree->createElement("arg1", "$input_array");
-        $pushs_arg1->setAttribute("type", $type);
+        $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+        $intruction_arg1->setAttribute("type", $type);
     }else
         lex_err();
-    $pushs->appendChild($pushs_arg1);
+    $intruction->appendChild($intruction_arg1);
 }
 
 function generate_two_arg_symvar($ins, $instr_counter, $input_array, $input_array2){
-    global $move;
+    global $intruction;
     global $domtree;
     global $program;
-    $move = $domtree->createElement("instruction");
-    $move->setAttribute("order","$instr_counter");
-    $move->setAttribute("opcode", "$ins");
-    $program->appendChild($move);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $move_arg1 = $domtree->createElement("arg1", "$input_array");
-    $move_arg1->setAttribute("type", "var");
-    $move->appendChild($move_arg1);
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "var");
+    $intruction->appendChild($intruction_arg1);
 
 
     if(check_arg($input_array)==0){
         if(check_arg($input_array2)==0) {
             $input_array2 = corr_xml_string($input_array2);
-            $move_arg2 = $domtree->createElement("arg2", "$input_array2");
-            $move_arg2->setAttribute("type", "var");
+            $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+            $intruction_arg2->setAttribute("type", "var");
         } elseif(check_arg($input_array2)==1) {
             $type = get_type($input_array2);
             check_string_escape($input_array2,$type);
             check_bool($input_array2,$type);
             check_nil($input_array2,$type);
             $input_array2 = corr_xml_string(correct_const($input_array2));
-            $move_arg2 = $domtree->createElement("arg2", "$input_array2");
-            $move_arg2->setAttribute("type", $type);
+            $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+            $intruction_arg2->setAttribute("type", $type);
         } else
             lex_err();
     } else
         lex_err();
-    $move->appendChild($move_arg2);
+    $intruction->appendChild($intruction_arg2);
 }
-
+/* Generate READ instruction */
 function two_arg_read($ins, $instr_counter, $input_array, $input_array2){
-    global $read;
+    global $intruction;
     global $domtree;
     global $program;
-    $read = $domtree->createElement("instruction");
-    $read->setAttribute("order","$instr_counter");
-    $read->setAttribute("opcode", "$ins");
-    $program->appendChild($read);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $read_arg1 = $domtree->createElement("arg1", "$input_array");
-    $read_arg1->setAttribute("type", "var");
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "var");
 
-    $read_arg2 = $domtree->createElement("arg2", "$input_array2");
-    $read_arg2->setAttribute("type", "type");
+    $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+    $intruction_arg2->setAttribute("type", "type");
 
-    $read->appendChild($read_arg1);
-    $read->appendChild($read_arg2);
+    $intruction->appendChild($intruction_arg1);
+    $intruction->appendChild($intruction_arg2);
 }
 
 
 function generate_three_arg($ins, $instr_counter, $input_array, $input_array2,$input_array3){
-    global $str2int;
+    global $intruction;
     global $domtree;
     global $program;
-    $str2int = $domtree->createElement("instruction");
-    $str2int->setAttribute("order","$instr_counter");
-    $str2int->setAttribute("opcode", "$ins");
-    $program->appendChild($str2int);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $str2int_arg1 = $domtree->createElement("arg1", "$input_array");
-    $str2int_arg1->setAttribute("type", "var");
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "var");
     if(check_arg($input_array2)==0 && check_arg($input_array3)==0){
         $input_array2 = corr_xml_string($input_array2);
-        $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", "var");
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", "var");
 
         $input_array3 = corr_xml_string($input_array3);
-        $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", "var");
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", "var");
 
     } elseif (check_arg($input_array2)==0 && check_arg($input_array3)==1){
-        $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", "var");
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", "var");
 
         $type = get_type($input_array3);
         check_string_escape($input_array3,$type);
         check_bool($input_array3,$type);
         check_nil($input_array3,$type);
         $input_array3 = corr_xml_string(correct_const($input_array3));
-        $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", $type);
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
 
         $type=get_type($input_array2);
@@ -217,92 +217,92 @@ function generate_three_arg($ins, $instr_counter, $input_array, $input_array2,$i
         check_bool($input_array2,$type);
         check_nil($input_array2,$type);
         $input_array2 = corr_xml_string(correct_const($input_array2));
-        $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", $type);
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", $type);
 
 
         $input_array3 = corr_xml_string($input_array3);
-        $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", "var");
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
         $type = get_type($input_array2);
         check_string_escape($input_array2,$type);
         check_bool($input_array2,$type);
         check_nil($input_array2,$type);
         $input_array2 = corr_xml_string(correct_const($input_array2));
-        $str2int_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $str2int_arg2->setAttribute("type", $type);
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", $type);
 
         $type2=get_type($input_array3);
         check_string_escape($input_array3,$type2);
         check_bool($input_array3,$type2);
         check_nil($input_array3,$type2);
         $input_array3 = corr_xml_string(correct_const($input_array3));
-        $str2int_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $str2int_arg3->setAttribute("type", $type2);
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", $type2);
     }else
         lex_err();
 
-$str2int->appendChild($str2int_arg1);
-$str2int->appendChild($str2int_arg2);
-$str2int->appendChild($str2int_arg3);
+    $intruction->appendChild($intruction_arg1);
+    $intruction->appendChild($intruction_arg2);
+    $intruction->appendChild($intruction_arg3);
 }
 
 
 function generate_three_arg_label($ins, $instr_counter, $input_array, $input_array2,$input_array3){
-    global $setchar;
+    global $intruction;
     global $domtree;
     global $program;
-    $setchar = $domtree->createElement("instruction");
-    $setchar->setAttribute("order","$instr_counter");
-    $setchar->setAttribute("opcode", "$ins");
-    $program->appendChild($setchar);
+    $intruction = $domtree->createElement("instruction");
+    $intruction->setAttribute("order","$instr_counter");
+    $intruction->setAttribute("opcode", "$ins");
+    $program->appendChild($intruction);
 
     $input_array = corr_xml_string($input_array);
-    $setchar_arg1 = $domtree->createElement("arg1", "$input_array");
-    $setchar_arg1->setAttribute("type", "label");
+    $intruction_arg1 = $domtree->createElement("arg1", "$input_array");
+    $intruction_arg1->setAttribute("type", "label");
     if(check_arg($input_array2)==0 && check_arg($input_array3)==0){
         $input_array2 = corr_xml_string($input_array2);
-        $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", "var");
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", "var");
 
         $input_array3 = corr_xml_string($input_array3);
-        $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", "var");
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", "var");
 
     } elseif (check_arg($input_array2)==0 && check_arg($input_array3)==1){
         $input_array2 = corr_xml_string($input_array2);
-        $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", "var");
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", "var");
 
         $type = get_type($input_array3);
         $input_array3 = corr_xml_string(correct_const($input_array3));
-        $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", $type);
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", $type);
     } elseif (check_arg($input_array2)==1 && check_arg($input_array3)==0){
         $type = get_type($input_array2);
         $input_array2 = corr_xml_string(correct_const($input_array2));
-        $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", $type);
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", $type);
 
         $input_array3 = corr_xml_string($input_array3);
-        $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", "var");
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", "var");
     }elseif(check_arg($input_array2)==1 && check_arg($input_array3)==1){
         $type = get_type($input_array2);
         $input_array2 = corr_xml_string(correct_const($input_array2));
-        $setchar_arg2 = $domtree->createElement("arg2", "$input_array2");
-        $setchar_arg2->setAttribute("type", $type);
+        $intruction_arg2 = $domtree->createElement("arg2", "$input_array2");
+        $intruction_arg2->setAttribute("type", $type);
 
         $type2 = get_type($input_array3);
         $input_array3 = corr_xml_string(correct_const($input_array3));
-        $setchar_arg3 = $domtree->createElement("arg3", "$input_array3");
-        $setchar_arg3->setAttribute("type", $type2);
+        $intruction_arg3 = $domtree->createElement("arg3", "$input_array3");
+        $intruction_arg3->setAttribute("type", $type2);
     }else
         lex_err();
-$setchar->appendChild($setchar_arg1);
-$setchar->appendChild($setchar_arg2);
-$setchar->appendChild($setchar_arg3);
+    $intruction->appendChild($intruction_arg1);
+    $intruction->appendChild($intruction_arg2);
+    $intruction->appendChild($intruction_arg3);
 }
 
 function check_params($instr_arr,$param1,$param2, $param3, $label_sign, $symb_sign){
@@ -439,8 +439,8 @@ function check_var($in){
     if($temp[1]!=""){
         if (preg_match('/^[A-Za-z$&%*!?_-][0-9A-Za-z$&%*!?_-]*$/', $temp[1]) != 1)
             lex_err();
-    }
-    return 0;
+    } else
+        lex_err();
 }
 
 function check_label($in){
