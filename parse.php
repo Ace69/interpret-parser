@@ -5,6 +5,7 @@
  * Date: 11.2.19
  */
 
+/* Error codes functions */
 function wrong_code(){
     fwrite(STDERR, "Wrong instruction!\n");
     exit(22);
@@ -17,11 +18,11 @@ function arg_err(){
     fwrite(STDERR, "Wrong arguments!\n");
     exit(10);
 }
-
+/* Remove end of line*/
 function remove_eol($str){
     return trim(preg_replace('/\s\s+/', ' ', $str));
 }
-
+/* Check and return type of argument of instructions*/
 function check_arg($in){
     if (strncmp($in, "GF@", 3) === 0 || strncmp($in, "LF@", 3) === 0 || strncmp($in, "TF@", 3) === 0) { # variable
         check_var($in);
@@ -33,26 +34,27 @@ function check_arg($in){
         return -1;
 }
 
+/* Check type of argument, type = {int,string,bool}*/
 function check_type($in){
     if (strncmp($in, "int@", 4) ===0 || strncmp($in, "bool@", 5) === 0|| strncmp($in, "string@", 7) === 0)
         return 0;
     else
         return -1;
 }
-
+/* Correct constant string*/
 function correct_const($in){
     $in = strstr($in, '@');
     $in = str_replace('@', '', $in);
     return $in;
 }
-
+/* Check if arguments are same type*/
 function check_if_same($in, $in2){
     if((strncmp($in, "int@", 3)===0 && strncmp($in2, "int@", 3)===0) || (strncmp($in, "bool@", 5)===0 && strncmp($in2, "bool@", 5)===0) || (strncmp($in, "string@", 7)===0 && strncmp($in2, "string@", 7)===0))
         return 0;
     else
         return -1;
 }
-
+/*Function that generate instruction with one parameter*/
 function generate_no_arg($ins, $instr_counter){
     global $createframe ;
     global $domtree;
@@ -373,18 +375,20 @@ function open_file($file,$instr_count){
 function check_arguments($option,$argc){
     global $extension;
     $extension = false;
-    //var_dump($option);
-    //exit(1);
     if($argc !=1) {
         if (array_key_exists("help", $option) == true) {
             if ($argc == 2) {
                 echo("--Skript typu filtr načte ze standartního vstupu zdrojový kód IPPcode19, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standartní výstup XML reprezentaci programu.\n");
+                exit(0);
             } else
-                arg_err();
+                argError();
         } elseif (array_key_exists("stats", $option) == true) {
-            $extension = true;
+            if($argc > 2)
+                $extension = true;
+            else
+                argError();
         } else
-            arg_err();
+            argError();
     }
 }
 
@@ -402,12 +406,12 @@ function extension($option,$instr_counter,$comments_counter,$jump_counter,$label
             } elseif($argv[$i]=="--labels"){
                 stats_gen($file,$label_counter);
             }else {
-                unlink($file);
-                arg_err();
+                //unlink($file);
+                argError();
             }
         }
     } else
-        arg_err();
+        argError();
 }
 
 function get_type($in){
@@ -460,7 +464,7 @@ function check_string_escape($in,$type){
 
             for ($i = 1; $i < $count + 1; $i++) {
                 $retval = substr($ret[$i], 0, 3);
-                if (ctype_digit($retval) == false)
+                if (ctype_digit($retval) == false || strlen($retval)!==3)
                     lex_err();
             }
         }
@@ -501,7 +505,7 @@ $longopts = array("help", "stats:","loc", "comments", "labels", "jumps");
 $option = getopt("", $longopts);
 check_arguments($option,$argc);
 /********************** Check header *************************** */
-$fh = fopen('read_test.src', 'r');
+$fh = fopen('input.txt', 'r');
 $line = fgets($fh);
 if(strpos($line, "#", 0) !== FALSE){
     $comments_counter++;
@@ -512,7 +516,7 @@ if(strpos($line, "#", 0) !== FALSE){
 }
 $line = strtoupper(trim($line));
 if($line != ".IPPCODE19"){
-    //fwrite(STDERR, "Wrong header!\n");
+    fwrite(STDERR, "Wrong header!\n");
     exit(21);
 }
 
