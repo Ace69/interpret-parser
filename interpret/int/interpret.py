@@ -10,23 +10,20 @@ def main():
     sourceFile = IOperation('input.src')
     fh =sourceFile.openFile()
 
+
     xmlInput = XmlOperation(fh) # instance
     string = xmlInput.readXml() # naparsovany xml string
 
 
      #loop na vsechny instrukce
     for instr in string:
-            instruction = Instruction(instr)
-            instruction.getInstr()
-            Switch.switch(instruction.getInstrName(instr))
+            Parser.parser(instr)
 
 
-            for arg in instr:
-                instruction.getAttrib(arg)
-            print("---------------------------\n")
 
     print("GF:", GF)
     print("TF:", TF)
     print("LF:", LF)
+    print("Lex/syntax OK")
 
 main()
