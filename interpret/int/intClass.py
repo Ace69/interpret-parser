@@ -93,6 +93,10 @@ class Instruction:
     def getInstrName(cls,instr):
         return (instr.attrib["opcode"])
 
+    @classmethod
+    def checkIfType(cls, type):
+        if not(type == "int" or type == "string" or type == "bool"):
+            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
 
     @classmethod
     def regexVarLabel(cls, input):
@@ -185,6 +189,24 @@ class Instruction:
         else:
             Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
 
+    @classmethod
+    def twoArgVarTypeInstruction(cls, instr):
+        if(cls.getAttribCount(instr) == 2):
+            firstArg = cls.getAttrib(instr,0)
+            secondArg = cls.getAttrib(instr,1)
+            if(firstArg == "var"):
+                firstArg = cls.getAttribVal(instr,0)
+                cls.checkVariable(firstArg)
+                if(secondArg == "type"):
+                    secondArg = cls.getAttribVal(instr,1)
+                    cls.checkIfType(secondArg)
+                else:
+                    Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+            else:
+                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+        else:
+            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+
 class Parser:
 
     @staticmethod
@@ -225,7 +247,7 @@ class Parser:
         elif (instrName == "INT2CHAR"):
             Instruction.twoArgVarSymbInstruction(instruction)
         elif (instrName == "READ"):
-            Instruction.twoArgVarSymbInstruction(instruction)
+            Instruction.twoArgVarTypeInstruction(instruction)
         elif (instrName == "STRLEN"):
             Instruction.twoArgVarSymbInstruction(instruction)
         elif (instrName == "TYPE"):
