@@ -20,10 +20,6 @@ def main():
             Parser.parser(instr)
 
 
-
-    print("GF:", GF)
-    print("TF:", TF)
-    print("LF:", LF)
-    print("Lex/syntax OK")
+    print("Parse OK")
 
 main()
