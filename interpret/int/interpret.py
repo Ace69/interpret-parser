@@ -19,7 +19,6 @@ def main():
     for instr in string:
             Parser.parser(instr)
 
-
     print("Parse OK")
 
 main()
