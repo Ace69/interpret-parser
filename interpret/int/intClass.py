@@ -2,7 +2,25 @@ import sys
 import xml.etree.ElementTree as ET
 import re
 
+class switch(object):
+    def __init__(self, value):
+        self.value = value
+        self.fall = False
 
+    def __iter__(self):
+        """Return the match method once, then stop"""
+        yield self.match
+        raise StopIteration
+
+    def match(self, *args):
+        """Indicate whether or not to enter a case suite"""
+        if self.fall or not args:
+            return True
+        elif self.value in args: # changed for v1.5, see below
+            self.fall = True
+            return True
+        else:
+            return False
 
 
 class Error:
@@ -96,19 +114,19 @@ class Instruction:
     @classmethod
     def checkIfType(cls, type):
         if not(type == "int" or type == "string" or type == "bool"):
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+            Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
     @classmethod
     def regexVarLabel(cls, input):
         if not re.search("[\w_\-$&%*][\w\d_\-$&%*]*$",input):   # REgex funguje dost divne, jakoze je napsany spravne, ale python si dela co chce
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+            Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
 
     @classmethod
     def checkVariable(cls, var):
         var = var.split("@")
         if(var[0] != "GF" and var[0] != "TF" and var[0] != "LF"):
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+            Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
         cls.regexVarLabel(var[1])
 
@@ -120,15 +138,15 @@ class Instruction:
             pass
         elif(inputConst == "int"):
             if not(ConstValue.isnumeric()):
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+                Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         elif(inputConst == "bool"):
             if not (ConstValue == "true" or ConstValue == "false"):
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+                Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         elif(inputConst == "nil"):
             if not(ConstValue == "nil"):
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+                Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         else:
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+            Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
     @classmethod
     def argCountCheck(cls, instr,  count):
@@ -138,27 +156,27 @@ class Instruction:
     @classmethod
     def noArgInstruction(cls, instr):
          if not(cls.getAttribCount(instr) == 0):
-              Error.exitInrerpret(Error.invalidXmlStruct,"Invalid input code")
+              Error.exitInrerpret(Error.invalidXmlStruct,"Lexical or syntax error")
 
     @classmethod
-    def oneArgVarInstruction(cls, instr, count):
+    def argVarInstruction(cls, instr, count):
             variable = cls.getAttrib(instr,count)
             if(variable == "var"):
                 varValue = cls.getAttribVal(instr, count)
                 cls.checkVariable(varValue)
             else:
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+                Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
     @classmethod
-    def oneArgLabelInstruction(cls,instr, count):
+    def argLabelInstruction(cls, instr, count):
             label = cls.getAttrib(instr,count)
             if(label == "label"):
                 labelVal = cls.getAttribVal(instr,count)
                 cls.regexVarLabel(labelVal)
             else:
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
+                Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
     @classmethod
-    def oneArgSymbInstruction(cls, instr, count):
+    def argSymbInstruction(cls, instr, count):
             if(cls.getAttrib(instr,count) == "var"):
                 varValue = cls.getAttribVal(instr,count)
                 cls.checkVariable(varValue)
@@ -166,137 +184,11 @@ class Instruction:
                 cls.checkConst(instr,count)
 
     @classmethod
-    def oneArgTypeInstruction(cls, instr, count):
+    def argTypeInstruction(cls, instr, count):
         if(cls.getAttrib(instr,count) == "type"):
             typeValue = cls.getAttrib(instr,count)
             cls.checkIfType(typeValue)
         else:
-            Error.exitInrerpret(Error.invalidXmlStruct,"invalid input code")
-
-    @classmethod
-    def twoArgVarSymbInstruction(cls, instr):
-        if(cls.getAttribCount(instr) == 2):
-            firstArg = cls.getAttrib(instr,0)
-            secondArg =cls.getAttrib(instr,1)
-            if(firstArg == "var"):
-                firstArgVal = cls.getAttribVal(instr,0)
-                cls.checkVariable(firstArgVal)
-                if(secondArg == "var"):
-                    secondArgVal = cls.getAttribVal(instr,1)
-                    cls.checkVariable(secondArgVal)
-                else:
-                    cls.checkConst(instr,1)
-            else:
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-        else:
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-
-    @classmethod
-    def twoArgVarTypeInstruction(cls, instr):
-        if(cls.getAttribCount(instr) == 2):
-            firstArg = cls.getAttrib(instr,0)
-            secondArg = cls.getAttrib(instr,1)
-            if(firstArg == "var"):
-                firstArg = cls.getAttribVal(instr,0)
-                cls.checkVariable(firstArg)
-                if(secondArg == "type"):
-                    secondArg = cls.getAttribVal(instr,1)
-                    cls.checkIfType(secondArg)
-                else:
-                    Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-            else:
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-        else:
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-
-    @classmethod
-    def threeArgInstruction(cls, instr):
-        if(cls.getAttribCount(instr) == 3):
-            firstArg = cls.getAttrib(instr,0)
-            secondArg = cls.getAttrib(instr,1)
-            thirdArg = cls.getAttrib(instr,2)
-            if(firstArg == "var"):
-                firstArg = cls.getAttribVal(instr,0)
-                cls.checkVariable(instr)
-
-            else:
-                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-
-        else:
-            Error.exitInrerpret(Error.invalidXmlStruct, "Invalid input code")
-
-
-class Parser:
-
-    @staticmethod
-    def parser(instruction):
-        instrName = Instruction.getInstrName(instruction).upper()
-        if(instrName == "CREATEFRAME"):
-            Instruction.argCountCheck(instruction,0)
-            Instruction.noArgInstruction(instruction)
-        elif (instrName == "PUSHFRAME"):
-            Instruction.argCountCheck(instruction, 0)
-            Instruction.noArgInstruction(instruction)
-        elif (instrName == "POPFRAME"):
-            Instruction.argCountCheck(instruction, 0)
-            Instruction.noArgInstruction(instruction)
-        elif (instrName == "RETURN"):
-            Instruction.argCountCheck(instruction, 0)
-            Instruction.noArgInstruction(instruction)
-        elif (instrName == "BREAK"):
-            Instruction.argCountCheck(instruction, 0)
-            Instruction.noArgInstruction(instruction)
-            # ---------------- 1 ARGUMENT -------------------------
-        elif (instrName == "DEFVAR"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgVarInstruction(instruction,0)
-        elif (instrName == "CALL"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgLabelInstruction(instruction,0)
-        elif (instrName == "PUSHS"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgSymbInstruction(instruction,0)
-        elif (instrName == "POPS"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgVarInstruction(instruction,0)
-        elif (instrName == "WRITE"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgSymbInstruction(instruction,0)
-        elif (instrName == "LABEL"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgLabelInstruction(instruction,0)
-        elif (instrName == "JUMP"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgLabelInstruction(instruction,0)
-        elif (instrName == "EXIT"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgSymbInstruction(instruction,0)
-        elif (instrName == "DPRINT"):
-            Instruction.argCountCheck(instruction, 1)
-            Instruction.oneArgSymbInstruction(instruction,0)
-            # ---------------- 2 ARGUMENTY -------------------------
-        elif (instrName == "MOVE"):
-            Instruction.argCountCheck(instruction, 2)
-            Instruction.oneArgVarInstruction(instruction,0)
-            Instruction.oneArgSymbInstruction(instruction,1)
-        elif (instrName == "INT2CHAR"):
-            Instruction.argCountCheck(instruction, 2)
-            Instruction.oneArgVarInstruction(instruction, 0)
-            Instruction.oneArgSymbInstruction(instruction, 1)
-        elif (instrName == "READ"):
-            Instruction.argCountCheck(instruction,2)
-            Instruction.oneArgVarInstruction(instruction,0)
-            Instruction.oneArgTypeInstruction(instruction,1)
-        elif (instrName == "STRLEN"):
-            Instruction.argCountCheck(instruction, 2)
-            Instruction.oneArgVarInstruction(instruction, 0)
-            Instruction.oneArgSymbInstruction(instruction, 1)
-        elif (instrName == "TYPE"):
-            Instruction.argCountCheck(instruction, 2)
-            Instruction.oneArgVarInstruction(instruction, 0)
-            Instruction.oneArgSymbInstruction(instruction, 1)
-        else:
-            Error.exitInrerpret(Error.invalidXmlStruct, "Wrong instruction")
-
+            Error.exitInrerpret(Error.invalidXmlStruct,"Lexical or syntax error")
 
 
