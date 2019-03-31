@@ -1,4 +1,5 @@
-from intClass import *
+from xmlParse import *
+from inputParse import *
 
 GF = dict()
 TF = {}
@@ -11,7 +12,7 @@ def main():
     fh =sourceFile.openFile()
 
 
-    xmlInput = XmlOperation(fh) # instance
+    xmlInput = XmlOperation(fh)
     stringg = xmlInput.readXml() # naparsovany xml string
 
 
@@ -91,5 +92,8 @@ def main():
                 Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
     print("Parse OK")
 
-
+    for instr in stringg:
+        instrName = Instruction.getInstrName(instr).upper()
+        for case in switch(instrName):
+            if case('CREATEFRAME'): pass
 main()

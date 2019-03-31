@@ -1,6 +1,6 @@
-import sys
-import xml.etree.ElementTree as ET
+from inputParse import *
 import re
+
 
 class switch(object):
     def __init__(self, value):
@@ -21,66 +21,6 @@ class switch(object):
             return True
         else:
             return False
-
-
-class Error:
-    invalidArgument = 10
-    invalidFile = 11
-
-    noWellFormedXml = 31
-    invalidXmlStruct = 32
-
-    intSemantic = 52
-    invalidOperandType = 53
-    invalidVar = 54
-    invalidFrame = 55
-    noValue = 56
-    invalidOperandValue = 57
-    invalidString = 58
-
-    @staticmethod
-    def exitInrerpret(code,msg):
-        sys.stderr.write(msg)
-        sys.exit(code)
-
-
-class IOperation:
-
-    def __init__(self,file):
-        self.file = file
-
-    def openFile(self):
-        global op
-        try:
-            op = open(self.file, "r")
-        except:
-            Error.exitInrerpret(Error.invalidFile,"Wrong input file")
-        return  op
-
-
-    def closeFile(self,op):
-        op.close()
-
-class XmlOperation:
-
-    def __init__(self,xmlFile):
-        self.xmlFile = xmlFile
-
-    def readXml(self):
-        retVal = ""
-        for line in self.xmlFile:
-            retVal += line
-        try:
-            retVal= ET.fromstring(retVal)
-        except:
-            sys.exit("XML is not well formed")
-        if not(retVal.tag =="program"):
-            sys.exit("Invalid XML file")
-        return retVal
-
-    def getAttrib(self, string,pos):
-        return (string[pos].attrib)
-
 
 class Instruction:
 
@@ -118,17 +58,18 @@ class Instruction:
 
     @classmethod
     def regexVarLabel(cls, input):
-        if not re.search("[\w_\-$&%*][\w\d_\-$&%*]*$",input):   # REgex funguje dost divne, jakoze je napsany spravne, ale python si dela co chce
+        if not re.search(r"^[\w_\-$&%*][\w\d_\-$&%*]*$",input):   # REgex funguje dost divne, jakoze je napsany spravne, ale python si dela co chce
             Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
 
     @classmethod
     def checkVariable(cls, var):
         var = var.split("@")
-        if(var[0] != "GF" and var[0] != "TF" and var[0] != "LF"):
+        if(var[0] == "GF" or var[0] == "TF" or  var[0] == "LF"):
+            cls.regexVarLabel(var[1])
+        else:
             Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
 
-        cls.regexVarLabel(var[1])
 
     @classmethod
     def checkConst(cls, const, number):
@@ -190,5 +131,3 @@ class Instruction:
             cls.checkIfType(typeValue)
         else:
             Error.exitInrerpret(Error.invalidXmlStruct,"Lexical or syntax error")
-
-
