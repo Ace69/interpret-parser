@@ -1,13 +1,11 @@
 from xmlParse import *
 from inputParse import *
-
-GF = dict()
-TF = {}
-LF = []
+from intLib import *
 
 
 def main():
 
+    labels = []
     sourceFile = IOperation('input.src')
     fh =sourceFile.openFile()
 
@@ -34,8 +32,8 @@ def main():
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argVarInstruction(instr, 0)
                 break
+            if case('LABEL'): labels.append(Instruction.getLabel(instr))
             if case('CALL'): pass
-            if case('LABEL'): pass
             if case('JUMP'):
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argLabelInstruction(instr, 0)
@@ -90,10 +88,74 @@ def main():
                 break
             if case():
                 Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
-    print("Parse OK")
+
+
+
+
+    frame = Frame()
+    # IntInstruction.createframe(frame)
+    # #IntInstruction.insertVar(frame, "LF@bbbb")
+    # IntInstruction.pushframe(frame)
+    # IntInstruction.insertVar(frame, "LF@aa")
+    # IntInstruction.insertVar(frame, "GF@bb")
+    #
+    # frame.insertValue("GF@aa", 50)
+    #
+    # # IntInstruction.insertVar(frame,"LF@aa")
+    # # IntInstruction.popframe(frame)
+    #
+
+    # Interpretace
 
     for instr in stringg:
         instrName = Instruction.getInstrName(instr).upper()
         for case in switch(instrName):
-            if case('CREATEFRAME'): pass
+            if case('CREATEFRAME'):
+                IntInstruction.createframe(frame)
+                break
+            if case('PUSHFRAME'):
+                IntInstruction.pushframe(frame)
+                break
+            if case('POPFRAME'):
+                IntInstruction.popframe(frame)
+                break
+            if case('DEFVAR'):
+                IntInstruction.defvar(frame, instr)
+                break
+            if case('MOVE'):
+                IntInstruction.move(frame, instr)
+                break
+            if case('PUSHS'):
+                IntInstruction.pushs(frame, instr)
+                break
+            if case('POPS'):
+                IntInstruction.pops(frame, instr)
+                break
+            if case('ADD'):
+                IntInstruction.Add(frame, instr,)
+                break
+            if case('SUB'):
+                IntInstruction.sub(frame, instr)
+                break
+            if case('MUL'):
+                IntInstruction.Mul(frame, instr)
+                break
+            if case('IDIV'):
+                IntInstruction.Idiv(frame, instr)
+                break
+            if case('WRITE'):
+                IntInstruction.Write(frame, instr)
+                break
+            if case():
+                Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
+
+    # print("Global frame:           " + str(frame.GF))
+    # print("Temporary frame:        " + str(frame.TF))
+    # print("Local frame:            " + str(frame.LF))
+    # print("Frame stack:            " + str(frame.frameStack))
+    # print("Instruction counter:    " + str(frame.instructionCounter))
+    # print("Stack:                  " + str(frame.stack))
+
+
+
 main()

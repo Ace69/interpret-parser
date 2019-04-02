@@ -52,7 +52,7 @@ class XmlOperation:
         try:
             retVal= ET.fromstring(retVal)
         except:
-            sys.exit("XML is not well formed")
+            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         if not(retVal.tag =="program"):
-            sys.exit("Invalid XML file")
+            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         return retVal

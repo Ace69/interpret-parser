@@ -1,7 +1,6 @@
 from inputParse import *
 import re
 
-
 class switch(object):
     def __init__(self, value):
         self.value = value
@@ -23,6 +22,7 @@ class switch(object):
             return False
 
 class Instruction:
+
 
     @classmethod
     def getAttribCount(cls, instr):
@@ -78,7 +78,7 @@ class Instruction:
         if(inputConst == "string"):
             pass
         elif(inputConst == "int"):
-            if not(ConstValue.isnumeric()):
+            if not(re.search(r"^[-+]?\d+$", ConstValue)):
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         elif(inputConst == "bool"):
             if not (ConstValue == "true" or ConstValue == "false"):
@@ -88,6 +88,7 @@ class Instruction:
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         else:
             Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
+
 
     @classmethod
     def argCountCheck(cls, instr,  count):
@@ -131,3 +132,7 @@ class Instruction:
             cls.checkIfType(typeValue)
         else:
             Error.exitInrerpret(Error.invalidXmlStruct,"Lexical or syntax error")
+
+    @classmethod
+    def getLabel(cls, instr):
+        return (cls.getAttribVal(instr, 0))
