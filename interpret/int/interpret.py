@@ -93,17 +93,6 @@ def main():
 
 
     frame = Frame()
-    # IntInstruction.createframe(frame)
-    # #IntInstruction.insertVar(frame, "LF@bbbb")
-    # IntInstruction.pushframe(frame)
-    # IntInstruction.insertVar(frame, "LF@aa")
-    # IntInstruction.insertVar(frame, "GF@bb")
-    #
-    # frame.insertValue("GF@aa", 50)
-    #
-    # # IntInstruction.insertVar(frame,"LF@aa")
-    # # IntInstruction.popframe(frame)
-    #
 
     # Interpretace
 
@@ -132,29 +121,80 @@ def main():
                 IntInstruction.pops(frame, instr)
                 break
             if case('ADD'):
-                IntInstruction.Add(frame, instr,)
+                (firstNum,secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+                val = frame.addTwoNumbers(firstNum,secondNum)
+                IntInstruction.insertValue(frame, varName, int(val))
                 break
             if case('SUB'):
-                IntInstruction.sub(frame, instr)
+                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+                val = frame.subTwoNumbers(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, int(val))
                 break
             if case('MUL'):
-                IntInstruction.Mul(frame, instr)
+                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+                val = frame.mulTwoNumbers(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, int(val))
                 break
             if case('IDIV'):
-                IntInstruction.Idiv(frame, instr)
+                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+                val = frame.divTwoNumbers(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, int(val))
                 break
             if case('WRITE'):
                 IntInstruction.Write(frame, instr)
                 break
+            if case('LT'):
+                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+                val = frame.isLesser(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('GT'):
+                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+                val = frame.isGreater(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('EQ'):
+                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+                val = frame.isEq(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('AND'):
+                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+                val = frame.logAnd(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('OR'):
+                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+                val = frame.logOr(firstNum, secondNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('NOT'):
+                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+                val = frame.logNot(firstNum)
+                IntInstruction.insertValue(frame, varName, val)
+                break
+            if case('INT2CHAR'):
+                IntInstruction.int2char(frame, instr)
+                break
+            if case('STRI2INT'):
+                IntInstruction.stri2int(frame, instr)
+                break
+            if case('CONCAT'):
+                IntInstruction.concat(frame, instr)
+                break
+            if case('STRLEN'):
+                IntInstruction.strlen(frame, instr)
+                break
             if case():
                 Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
 
-    # print("Global frame:           " + str(frame.GF))
-    # print("Temporary frame:        " + str(frame.TF))
-    # print("Local frame:            " + str(frame.LF))
-    # print("Frame stack:            " + str(frame.frameStack))
-    # print("Instruction counter:    " + str(frame.instructionCounter))
-    # print("Stack:                  " + str(frame.stack))
+    print("------------------------------------------")
+    print("Global frame:           " + str(frame.GF))
+    print("Temporary frame:        " + str(frame.TF))
+    print("Local frame:            " + str(frame.LF))
+    print("Frame stack:            " + str(frame.frameStack))
+    print("Instruction counter:    " + str(frame.instructionCounter))
+    print("Stack:                  " + str(frame.stack))
 
 
 

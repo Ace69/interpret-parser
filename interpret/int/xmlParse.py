@@ -51,6 +51,7 @@ class Instruction:
     def getInstrName(cls,instr):
         return (instr.attrib["opcode"])
 
+
     @classmethod
     def checkIfType(cls, type):
         if not(type == "int" or type == "string" or type == "bool"):
@@ -136,3 +137,4 @@ class Instruction:
     @classmethod
     def getLabel(cls, instr):
         return (cls.getAttribVal(instr, 0))
+

@@ -1,5 +1,6 @@
 from inputParse import *
 from xmlParse import  *
+import re
 
 
 class Frame(Instruction):
@@ -28,10 +29,9 @@ class Frame(Instruction):
             Error.exitInrerpret(Error.invalidFrame,"Frame not defined")
 
     def moveLFtoTF(self):
-        self.TF = self.LF
-        self.LF = self.frameStack[-1]
-
         try:
+            self.TF = self.LF
+            self.LF = self.frameStack[-1]
             self.frameStack.pop()
         except:
             Error.exitInrerpret(Error.invalidFrame, "No frame available")
@@ -129,9 +129,10 @@ class Frame(Instruction):
             if varname[3:] in self.LF:
                 self.LF[varname[3:]] = self.stack.pop()
 
-    def checkIfInt(self, integer):
+    def checkIfTypeInt(self, integer):
         if(integer != "int"):
             Error.exitInrerpret(Error.invalidOperandType, "Invalid operand type")
+
 
 
     def getValFromVar(self, varname):
@@ -158,16 +159,95 @@ class Frame(Instruction):
         except:
             Error.exitInrerpret(Error.invalidOperandValue, "Zero division!")
 
-    def isSame(self, varname, varname2):
-        pass
+    def checkInt(self, integer):
+        if not re.search(r"^[-+]?\d+$$", str(integer)): # pokud to nebyl object, tak regex hazel chybu, musel jsem castnout na string
+            Error.exitInrerpret(Error.invalidOperandType, "Invalid operands")
 
+
+    def isSameValue(self, one,two):
+        if((one == "true" or one == "false") and ( two == "true" or two == "false")):
+            print("booole")
+        elif(self.checkInt(one) and self.checkInt(two)):
+            print("intttt")
+            pass
+        else:
+            print("neuspelo")
 
     def isGreater(self, one, two):
-        if(int(one) > int(two)):
+        if(str(one) > str(two)):
             return True
         else:
             return False
 
+    def isLesser(self, one, two):
+        if(str(one) < str(two)):
+            return True
+        else:
+            return False
+
+    def isEq(self, one, two):
+        if(str(one) == str(two)):
+            return True
+        else:
+            return False
+
+    def logAnd(self, one, two):
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
+        return(one and two)
+
+    def logOr(self, one, two):
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
+        return (one or two)
+
+    def logNot(self, one):
+        one = self.reversCorrBool(one)
+        return (not(one))
+
+    def isVariable(self, instr):
+        if(Instruction.getAttrib(instr,0) == "var"):
+            return True
+
+    def getEscapeSequence(cls, instr):
+
+        groups = re.findall(r"\\([0-9]{3})", instr)  # Find escape sequences
+        groups = list(set(groups))  # Remove duplicates
+
+        # -- Decode escape sqeuences --
+        for group in groups:
+            if group == "092":  # Special case for \ (I don't even know why)
+                xmlValue = re.sub("\\\\092", "\\\\", instr)
+                continue
+
+        xmlValue = re.sub("\\\\{0}".format(group), chr(int(group)), instr)
+        return xmlValue
+
+    def getType(self, const):
+        if(type(const) is int):
+            return "int"
+        elif(type(const) is str):
+            return "string"
+        elif(type(const) is bool):
+            return "bool"
+        elif(type(const) is None):
+            return "None"
+
+    def corrBool(self, const):
+        if(const == True):
+            return "true"
+        elif(const == False):
+            return "false"
+
+    def reversCorrBool(self, const):
+        if(const == "true"):
+            return True
+        elif(const == "false"):
+            return False
+
+    def checkBool(self, one, two):
+        if((one != "false" and one != "true") or (two != "false" and two != "true")):
+            Error.exitInrerpret(Error.invalidOperandType, "Invalid operators")
 
 class IntInstruction(Frame):
 
@@ -193,8 +273,15 @@ class IntInstruction(Frame):
     def move(self, instr):
         var = Instruction.getAttribVal(instr,0)
         value = Instruction.getAttribVal(instr,1)
-        Frame.insertValue(self,var,value)
-        self.instructionCounter += 1
+        if( Instruction.getAttrib(instr,1) == "int"):
+            Frame.insertValue(self,var,int(value))
+            self.instructionCounter += 1
+        elif(Instruction.getAttrib(instr,1) == "bool"):
+            Frame.insertValue(self,var,value)
+            self.instructionCounter += 1
+        elif(Instruction.getAttrib(instr,1) == "string"):
+            Frame.insertValue(self,var,str(value))
+            self.instructionCounter += 1
 
     def pushs(self, instr):
         varname = Instruction.getAttribVal(instr,0)
@@ -208,140 +295,218 @@ class IntInstruction(Frame):
         self.getValFromStack(varname)
         self.instructionCounter += 1
 
-    def Add(self, instr):
+    def arithmeticOperation(self, instr):
         varname = Instruction.getAttribVal(instr,0)
         arg1 = Instruction.getAttribVal(instr,1)
         arg2 = Instruction.getAttribVal(instr,2)
-        firstNum = 0
-        secondNum = 0
 
         self.checkFrameExists(varname)
         firstNum = self.getValFromVar(arg1)
         secondNum = self.getValFromVar(arg2)
-
+        self.instructionCounter += 1
 
         if(firstNum != None and secondNum != None): # pokud jsou opa operandy promenne
-            value = self.addTwoNumbers(firstNum, secondNum)
-            Frame.insertValue(self, varname, value)
-            return (firstNum, secondNum)
+            self.checkInt(firstNum)
+            self.checkInt(secondNum)
+            return (firstNum, secondNum, varname)
 
         elif(firstNum != None and secondNum == None): # pokud je prvni operand promenna a druhy konstanta
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.addTwoNumbers(firstNum, arg2)
-            Frame.insertValue(self, varname, value)
+            self.checkInt(firstNum)
+            self.checkIfTypeInt(Instruction.getAttrib(instr, 2))
+            return (firstNum, arg2, varname)
+
 
         elif(firstNum == None and secondNum != None): # pokud je prvni operand konstanta a druhy promenna
-            self.checkIfInt(Instruction.getAttrib(instr,1))
-            value = self.addTwoNumbers(arg1, secondNum)
-            Frame.insertValue(self, varname, value)
+            self.checkIfTypeInt(Instruction.getAttrib(instr, 1))
+            print(secondNum)
+            self.checkInt(secondNum)
+            return (arg1, secondNum, varname)
 
         elif(firstNum == None and secondNum == None): # pokud jsou oba operandy konstanty
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.addTwoNumbers(arg1, arg2)
-            Frame.insertValue(self, varname, value)
-        self.instructionCounter += 1
+            self.checkIfTypeInt(Instruction.getAttrib(instr, 1))
+            self.checkIfTypeInt(Instruction.getAttrib(instr, 2))
+            return (arg1, arg2, varname)
 
-    def sub(self, instr):
-        varname = Instruction.getAttribVal(instr, 0)
-        arg1 = Instruction.getAttribVal(instr, 1)
-        arg2 = Instruction.getAttribVal(instr, 2)
-        firstNum = 0
-        secondNum = 0
-
-        self.checkFrameExists(varname)
-        firstNum = self.getValFromVar(arg1)
-        secondNum = self.getValFromVar(arg2)
-
-        if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
-            value = self.subTwoNumbers(firstNum, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.subTwoNumbers(firstNum, arg2)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum != None):  # pokud je prvni operand konstanta a druhy promenna
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            value = self.subTwoNumbers(arg1, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum == None):  # pokud jsou oba operandy konstanty
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.subTwoNumbers(arg1, arg2)
-            Frame.insertValue(self, varname, value)
-        self.instructionCounter += 1
-
-    def Mul(self, instr):
-        varname = Instruction.getAttribVal(instr, 0)
-        arg1 = Instruction.getAttribVal(instr, 1)
-        arg2 = Instruction.getAttribVal(instr, 2)
-        firstNum = 0
-        secondNum = 0
-
-        self.checkFrameExists(varname)
-        firstNum = self.getValFromVar(arg1)
-        secondNum = self.getValFromVar(arg2)
-
-        if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
-            value = self.mulTwoNumbers(firstNum, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.mulTwoNumbers(firstNum, arg2)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum != None):  # pokud je prvni operand konstanta a druhy promenna
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            value = self.mulTwoNumbers(arg1, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum == None):  # pokud jsou oba operandy konstanty
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.mulTwoNumbers(arg1, arg2)
-            Frame.insertValue(self, varname, value)
-        self.instructionCounter += 1
-
-
-    def Idiv(self, instr):
-        varname = Instruction.getAttribVal(instr, 0)
-        arg1 = Instruction.getAttribVal(instr, 1)
-        arg2 = Instruction.getAttribVal(instr, 2)
-        firstNum = 0
-        secondNum = 0
-
-        self.checkFrameExists(varname)
-        firstNum = self.getValFromVar(arg1)
-        secondNum = self.getValFromVar(arg2)
-
-        if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
-            value = self.divTwoNumbers(firstNum, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.divTwoNumbers(firstNum, arg2)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum != None):  # pokud je prvni operand konstanta a druhy promenna
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            value = self.divTwoNumbers(arg1, secondNum)
-            Frame.insertValue(self, varname, value)
-
-        elif (firstNum == None and secondNum == None):  # pokud jsou oba operandy konstanty
-            self.checkIfInt(Instruction.getAttrib(instr, 1))
-            self.checkIfInt(Instruction.getAttrib(instr, 2))
-            value = self.divTwoNumbers(arg1, arg2)
-            Frame.insertValue(self, varname, value)
-        self.instructionCounter += 1
 
     def Write(self, instr):
         varname = Instruction.getAttribVal(instr, 0)
+        if(self.isVariable(instr)):
+            self.checkFrameExists(varname)
+            firstNum = self.getValFromVar(varname)
+            print(firstNum)
+        else:
+            if(Instruction.getAttrib(instr,0) == "string"):
+                #varname = self.getEscapeSequence(varname)
+                if(varname == None):
+                    print("")
+                else:
+                    print(varname)
+            else:
+                print(varname)
+
+
+    def relationOperation(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+
+        arg1T = Instruction.getAttrib(instr,1)
+        arg2T = Instruction.getAttrib(instr,2)
 
         self.checkFrameExists(varname)
-        firstNum = self.getValFromVar(varname)
-        print(firstNum, end='')
+        firstNum = self.getValFromVar(arg1)
+        secondNum = self.getValFromVar(arg2)
+
+        firstNumT = self.getType(firstNum)
+        secondNumT = self.getType(secondNum)
+
+        self.instructionCounter += 1
+
+        if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
+            if(firstNumT == secondNumT):
+                return (firstNum, secondNum, varname)
+            else:
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+
+        elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
+            if(firstNumT == arg2T):
+                return (firstNum, arg2, varname)
+            else:
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+
+        elif (firstNum == None and secondNum != None):  # pokud je prvni operand konstanta a druhy promenna
+            if(arg1T == secondNumT):
+                return (arg1, secondNum, varname)
+            else:
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+
+        elif (firstNum == None and secondNum == None):  # pokud jsou oba operandy konstanty
+            if(arg1T == arg2T):
+                return (arg1, arg2, varname)
+            else:
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+
+    def logicalOperation(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+
+        self.checkFrameExists(varname)
+        firstNum = self.getValFromVar(arg1)
+        secondNum = self.getValFromVar(arg2)
+        self.instructionCounter += 1
+
+        if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
+            self.checkBool(firstNum, secondNum)
+            return (firstNum, secondNum, varname)
+
+        elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
+            self.checkBool(firstNum, arg2)
+            return (firstNum, arg2, varname)
+
+        elif (firstNum == None and secondNum != None):  # pokud je prvni operand konstanta a druhy promenna
+            self.checkBool(arg1, secondNum)
+            return (arg1, secondNum, varname)
+
+        elif (firstNum == None and secondNum == None):  # pokud jsou oba operandy konstanty
+            self.checkBool(arg1, arg2)
+            return (arg1, arg2, varname)
+
+
+    def int2char(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+
+        self.checkFrameExists(varname)
+        firstNum = self.getValFromVar(arg1)
+        self.instructionCounter += 1
+
+        if(firstNum != None): # promenna
+            self.checkInt(firstNum)
+            try:
+                retVal = chr(int(firstNum))
+                IntInstruction.insertValue(self, varname, retVal)
+            except:
+                Error.exitInrerpret(Error.invalidString, "String error")
+        elif(firstNum == None): # konstanta
+            self.checkInt(arg1)
+            try:
+                retVal = chr(int(arg1))
+                IntInstruction.insertValue(self, varname, retVal)
+            except:
+                Error.exitInrerpret(Error.invalidString, "String error")
+
+    def stri2int(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        index = Instruction.getAttribVal(instr, 2)
+
+        self.checkFrameExists(varname)
+        firstNum = self.getValFromVar(index)
+        self.instructionCounter += 1
+
+        if(firstNum != None):
+            try:
+                reTval = ord(arg1[int(firstNum)])
+                IntInstruction.insertValue(self, varname, reTval)
+            except:
+                Error.exitInrerpret(Error.invalidString, "invalid string")
+        elif(firstNum == None):
+            try:
+                reTval = ord(arg1[int(index)])
+                IntInstruction.insertValue(self, varname, reTval)
+            except:
+                Error.exitInrerpret(Error.invalidString, "invalid string")
+
+    def concat(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+
+        arg1T = Instruction.getAttrib(instr, 1)
+        arg2T = Instruction.getAttrib(instr, 2)
+
+        self.checkFrameExists(varname)
+        firstNum = self.getValFromVar(arg1)
+        secondNum = self.getValFromVar(arg2)
+
+        firstNumT = self.getType(firstNum)
+        secondNumT = self.getType(secondNum)
+        self.instructionCounter += 1
+
+
+        if(firstNum != None and secondNum != None):
+            if(firstNumT == "string" and secondNumT == "strng"):
+                retVal = firstNum + secondNum
+
+        elif(firstNum == None and secondNum != None):
+            if(arg1T == "string" and secondNumT == "string"):
+                retVal = arg1 + secondNum
+                IntInstruction.insertValue(self, varname, retVal)
+        elif(firstNum != None and secondNum == None):
+            if(firstNumT == "string" and arg2T == "string"):
+                retVal = firstNum + arg2
+                IntInstruction.insertValue(self, varname, retVal)
+        elif(firstNum == None and secondNum == None):
+            if(arg1T == "string" and arg2T == "string"):
+                retVal = arg1 + arg2
+                IntInstruction.insertValue(self, varname, retVal)
+
+    def strlen(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+
+        arg1T = Instruction.getAttrib(instr, 1)
+
+        self.checkFrameExists(varname)
+        firstNum = self.getValFromVar(arg1)
+
+        firstNumT = self.getType(firstNum)
+        if(firstNum != None):
+            if(firstNumT == "string"):
+                retVal = len(firstNum)
+                IntInstruction.insertValue(self, varname, retVal)
+        elif(firstNum == None):
+            if(arg1T== "string"):
+                retVal = len(arg1)
+                IntInstruction.insertValue(self, varname, retVal)
