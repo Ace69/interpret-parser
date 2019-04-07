@@ -1,9 +1,10 @@
 from inputParse import *
 from xmlParse import  *
 import re
+import sys
 
 
-class Frame(Instruction):
+class Frame:
 
     def __init__(self):
         self.GF = dict()
@@ -252,9 +253,11 @@ class Frame(Instruction):
 class IntInstruction(Frame):
 
     def createframe(self):
+        """"" Vytvori novy TF a pripadne zahodi existujici"""""
         Frame.initTF(self)
         self.instructionCounter += 1
     def pushframe(self):
+        """"" Presune TF do zasboniku ramcu LF, pote bude TF neinicializovany"""""
         Frame.initLF(self)
         Frame.moveTFtoLF(self)
         self.frameStack.append(self.LF)
@@ -262,15 +265,18 @@ class IntInstruction(Frame):
 
 
     def popframe(self):
+        """"" Presune nejvyssi LF do TF, pokud neni tak chyba """""
         Frame.moveLFtoTF(self)
         self.instructionCounter += 1
 
     def defvar(self, instr):
+        """"" Vytvoreni nove neinicializovane promenne <var> """""
         var = Instruction.getAttribVal(instr,0)
         Frame.insertVar(self,var)
         self.instructionCounter += 1
 
     def move(self, instr):
+        """"" Vlozeni hodnoty <symb> do promenne <var>"""""
         var = Instruction.getAttribVal(instr,0)
         value = Instruction.getAttribVal(instr,1)
         if( Instruction.getAttrib(instr,1) == "int"):
@@ -284,18 +290,21 @@ class IntInstruction(Frame):
             self.instructionCounter += 1
 
     def pushs(self, instr):
+        """"" Vlozeni <symb> do zasobniku zasobnikovych instrukci"""""
         varname = Instruction.getAttribVal(instr,0)
         self.checkFrameExists(varname)
         self.insertValIntoStack(varname)
         self.instructionCounter += 1
 
     def pops(self, instr):
+        """"" Popnuti <symb> ze zasobniku zasobnikovych instrukci"""""
         varname = Instruction.getAttribVal(instr,0)
         self.checkFrameExists(varname)
         self.getValFromStack(varname)
         self.instructionCounter += 1
 
     def arithmeticOperation(self, instr):
+        """"" Provedeni aritmetickych operaci ADD,SUB, MUL, IDIV"""""
         varname = Instruction.getAttribVal(instr,0)
         arg1 = Instruction.getAttribVal(instr,1)
         arg2 = Instruction.getAttribVal(instr,2)
@@ -329,6 +338,7 @@ class IntInstruction(Frame):
 
 
     def Write(self, instr):
+        """"" Vypis hodnoty <symb> na standardni vystup """""
         varname = Instruction.getAttribVal(instr, 0)
         if(self.isVariable(instr)):
             self.checkFrameExists(varname)
@@ -346,6 +356,7 @@ class IntInstruction(Frame):
 
 
     def relationOperation(self, instr):
+        """"" Relacni operace GT/LT/EQ, - opet problem s booleanem, nutno dodelat"""""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
         arg2 = Instruction.getAttribVal(instr, 2)
@@ -363,9 +374,6 @@ class IntInstruction(Frame):
         self.instructionCounter += 1
 
         if (firstNum != None and secondNum != None):  # pokud jsou opa operandy promenne
-            if(firstNumT == secondNumT):
-                return (firstNum, secondNum, varname)
-            else:
                 Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
 
         elif (firstNum != None and secondNum == None):  # pokud je prvni operand promenna a druhy konstanta
@@ -384,9 +392,13 @@ class IntInstruction(Frame):
             if(arg1T == arg2T):
                 return (arg1, arg2, varname)
             else:
-                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+                Error.ex
+            if(firstNumT == secondNumT):
+                return (firstNum, secondNum, varname)
+            else:itInrerpret(Error.invalidOperandType, "invalid logical operand")
 
     def logicalOperation(self, instr):
+        """"" Logicke operace AND/OR/NOT, doresit boolean, ktery funguje divne """""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
         arg2 = Instruction.getAttribVal(instr, 2)
@@ -414,6 +426,7 @@ class IntInstruction(Frame):
 
 
     def int2char(self, instr):
+        """"" Prevede ciselnou hodnotu v <symb> na znak Unicode a vlozi do <var>"""""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
 
@@ -437,6 +450,7 @@ class IntInstruction(Frame):
                 Error.exitInrerpret(Error.invalidString, "String error")
 
     def stri2int(self, instr):
+        """"" Do promenne <var>  se ulozi ordinalni(ciselna) hodnota znaku v <symb> """""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
         index = Instruction.getAttribVal(instr, 2)
@@ -459,6 +473,7 @@ class IntInstruction(Frame):
                 Error.exitInrerpret(Error.invalidString, "invalid string")
 
     def concat(self, instr):
+        """"" Konkatenace dvou retezcu <symb1> a <symb1> a ulozeni do <var>"""""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
         arg2 = Instruction.getAttribVal(instr, 2)
@@ -493,6 +508,7 @@ class IntInstruction(Frame):
                 IntInstruction.insertValue(self, varname, retVal)
 
     def strlen(self, instr):
+        """"" Zjisteni delky retezce <symb> a ulozeni do <var>"""""
         varname = Instruction.getAttribVal(instr, 0)
         arg1 = Instruction.getAttribVal(instr, 1)
 
@@ -510,3 +526,46 @@ class IntInstruction(Frame):
             if(arg1T== "string"):
                 retVal = len(arg1)
                 IntInstruction.insertValue(self, varname, retVal)
+
+    def Exit(self, instr):
+        """"" Ukonceni programu s kodem danym parametrem <symb> v intervalu 0-49, jinak chyba 57"""""
+        arg1 = Instruction.getAttribVal(instr, 0)
+
+
+        firstNum = self.getValFromVar(arg1)
+
+        if(firstNum != None):
+            if(0 <= int(firstNum) <= 49):
+                sys.exit(firstNum)
+            else:
+                Error.exitInrerpret(Error.invalidOperandValue, "Invalid operand value")
+        elif(firstNum == None):
+            if(0 <= int(arg1) <= 49):
+                sys.exit(arg1)
+            else:
+                Error.exitInrerpret(Error.invalidOperandValue, "Invalid operand value")
+
+    def dPrint(self, instr):
+        """"" Vypis <symb> na stderr """""
+        arg1 = Instruction.getAttribVal(instr, 0)
+
+        firstNum = self.getValFromVar(arg1)
+        if(firstNum != None):
+            sys.stderr.write(firstNum)
+        elif(firstNum == None):
+            sys.stderr.write(arg1)
+        else:
+            Error.exitInrerpret(Error.invalidOperandType, "Dprint error")
+
+    def Break(self):
+        """"" Vypis potrebnych informaci na stdout """""
+        print("------------------------------------------")
+        print("Global frame:           " + str(self.GF))
+        print("Temporary frame:        " + str(self.TF))
+        print("Local frame:            " + str(self.LF))
+        print("Frame stack:            " + str(self.frameStack))
+        print("Instruction counter:    " + str(self.instructionCounter))
+        print("Stack:                  " + str(self.stack))
+
+    def label(self, instr):
+        pass

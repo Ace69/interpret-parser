@@ -185,16 +185,21 @@ def main():
             if case('STRLEN'):
                 IntInstruction.strlen(frame, instr)
                 break
+            if case('EXIT'):
+                IntInstruction.Exit(frame, instr)
+                break
+            if case('DPRINT'):
+                IntInstruction.dPrint(frame, instr)
+                break
+            if case('BREAK'):
+                IntInstruction.Break(frame)
+                break
+            if case('LABEL'):
+                IntInstruction.label(frame, instr)
+                break
             if case():
                 Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
 
-    print("------------------------------------------")
-    print("Global frame:           " + str(frame.GF))
-    print("Temporary frame:        " + str(frame.TF))
-    print("Local frame:            " + str(frame.LF))
-    print("Frame stack:            " + str(frame.frameStack))
-    print("Instruction counter:    " + str(frame.instructionCounter))
-    print("Stack:                  " + str(frame.stack))
 
 
 
