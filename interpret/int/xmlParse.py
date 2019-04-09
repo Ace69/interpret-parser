@@ -33,7 +33,7 @@ class Instruction:
 
     @classmethod
     def getAttribVal(cls, instr, argNumber):
-        return (instr[argNumber].text)
+        return instr[argNumber].text
 
     @classmethod
     def getAttrib(cls, instr, number):
@@ -49,11 +49,11 @@ class Instruction:
 
     @classmethod
     def getInstrName(cls,instr):
-        return (instr.attrib["opcode"])
+        return instr.attrib["opcode"]
 
     @classmethod
     def getOrder(cls, instr):
-        return (instr.attrib["order"])
+        return instr.attrib["order"]
 
 
     @classmethod
@@ -70,7 +70,7 @@ class Instruction:
     @classmethod
     def checkVariable(cls, var):
         var = var.split("@")
-        if(var[0] == "GF" or var[0] == "TF" or  var[0] == "LF"):
+        if var[0] == "GF" or var[0] == "TF" or  var[0] == "LF":
             cls.regexVarLabel(var[1])
         else:
             Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
@@ -80,15 +80,15 @@ class Instruction:
     def checkConst(cls, const, number):
         inputConst = cls.getAttrib(const,number)
         ConstValue = cls.getAttribVal(const,number)
-        if(inputConst == "string"):
+        if inputConst == "string":
             pass
-        elif(inputConst == "int"):
+        elif inputConst == "int":
             if not(re.search(r"^[-+]?\d+$", ConstValue)):
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
-        elif(inputConst == "bool"):
+        elif inputConst == "bool":
             if not (ConstValue == "true" or ConstValue == "false"):
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
-        elif(inputConst == "nil"):
+        elif inputConst == "nil":
             if not(ConstValue == "nil"):
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
         else:
@@ -97,7 +97,7 @@ class Instruction:
 
     @classmethod
     def argCountCheck(cls, instr,  count):
-        if(cls.getAttribCount(instr) != count):
+        if cls.getAttribCount(instr) != count:
             Error.exitInrerpret(Error.invalidXmlStruct, "invalid inout code")
 
     @classmethod
@@ -108,7 +108,7 @@ class Instruction:
     @classmethod
     def argVarInstruction(cls, instr, count):
             variable = cls.getAttrib(instr,count)
-            if(variable == "var"):
+            if variable == "var":
                 varValue = cls.getAttribVal(instr, count)
                 cls.checkVariable(varValue)
             else:
@@ -117,14 +117,14 @@ class Instruction:
     @classmethod
     def argLabelInstruction(cls, instr, count):
             label = cls.getAttrib(instr,count)
-            if(label == "label"):
+            if label == "label":
                 labelVal = cls.getAttribVal(instr,count)
                 cls.regexVarLabel(labelVal)
             else:
                 Error.exitInrerpret(Error.invalidXmlStruct, "Lexical or syntax error")
     @classmethod
     def argSymbInstruction(cls, instr, count):
-            if(cls.getAttrib(instr,count) == "var"):
+            if cls.getAttrib(instr, count) == "var":
                 varValue = cls.getAttribVal(instr,count)
                 cls.checkVariable(varValue)
             else:
@@ -132,7 +132,7 @@ class Instruction:
 
     @classmethod
     def argTypeInstruction(cls, instr, count):
-        if(cls.getAttrib(instr,count) == "type"):
+        if cls.getAttrib(instr, count) == "type":
             typeValue = cls.getAttrib(instr,count)
             cls.checkIfType(typeValue)
         else:
@@ -140,5 +140,15 @@ class Instruction:
 
     @classmethod
     def getLabel(cls, instr):
-        return (cls.getAttribVal(instr, 0))
+        return cls.getAttribVal(instr, 0)
 
+    @classmethod
+    def checkLabel(cls, instr, labels):
+        labName = cls.getLabel(instr)
+        if labName in labels:
+            Error.exitInrerpret(Error.intSemantic, "Label is already used")
+    @classmethod
+    def checkIfLabelExist(cls, instr, labels):
+        labName = cls.getLabel(instr)
+        if not labName in labels:
+            Error.exitInrerpret(Error.intSemantic, "Label does not exists")
