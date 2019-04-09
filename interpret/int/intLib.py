@@ -13,6 +13,8 @@ class Frame:
         self.frameStack = []
         self.instructionCounter = 0
         self.stack = []
+        self.labels = {}
+        self.instructionStack = {}
 
     def initLF(self):
         self.LF = dict()
@@ -105,17 +107,7 @@ class Frame:
             self.LF[varName[3:]] = value
 
     def insertValIntoStack(self, varname):
-        if(varname[:3] == "GF@"):
-            if varname[3:] in self.GF:
-                self.stack.append(self.GF.get(varname[3:]))
-
-        elif(varname[:3] == "TF@"):
-            if(varname[3:] in self.TF):
-                self.stack.append(self.TF.get(varname[3:]))
-
-        elif(varname[:3] == "LF@"):
-            if(varname[3:] in self.LF):
-                self.stack.append(self.LF.get(varname[3:]))
+        self.stack.append(varname)
 
     def getValFromStack(self, varname):
         if (varname[:3] == "GF@"):
@@ -156,7 +148,7 @@ class Frame:
 
     def divTwoNumbers(self, one, two):
         try:
-            return (int(one) / int(two))
+            return (int(one) // int(two))
         except:
             Error.exitInrerpret(Error.invalidOperandValue, "Zero division!")
 
@@ -392,10 +384,11 @@ class IntInstruction(Frame):
             if(arg1T == arg2T):
                 return (arg1, arg2, varname)
             else:
-                Error.ex
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
             if(firstNumT == secondNumT):
                 return (firstNum, secondNum, varname)
-            else:itInrerpret(Error.invalidOperandType, "invalid logical operand")
+            else:
+                Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
 
     def logicalOperation(self, instr):
         """"" Logicke operace AND/OR/NOT, doresit boolean, ktery funguje divne """""
@@ -514,6 +507,7 @@ class IntInstruction(Frame):
 
         arg1T = Instruction.getAttrib(instr, 1)
 
+        self.instructionCounter += 1
         self.checkFrameExists(varname)
         firstNum = self.getValFromVar(arg1)
 
@@ -531,7 +525,7 @@ class IntInstruction(Frame):
         """"" Ukonceni programu s kodem danym parametrem <symb> v intervalu 0-49, jinak chyba 57"""""
         arg1 = Instruction.getAttribVal(instr, 0)
 
-
+        self.instructionCounter += 1
         firstNum = self.getValFromVar(arg1)
 
         if(firstNum != None):
@@ -548,17 +542,20 @@ class IntInstruction(Frame):
     def dPrint(self, instr):
         """"" Vypis <symb> na stderr """""
         arg1 = Instruction.getAttribVal(instr, 0)
+        self.instructionCounter += 1
 
         firstNum = self.getValFromVar(arg1)
         if(firstNum != None):
-            sys.stderr.write(firstNum)
+            sys.stderr.write(firstNum+"\n")
         elif(firstNum == None):
-            sys.stderr.write(arg1)
+            sys.stderr.write(arg1+"\n")
         else:
             Error.exitInrerpret(Error.invalidOperandType, "Dprint error")
 
     def Break(self):
         """"" Vypis potrebnych informaci na stdout """""
+        self.instructionCounter += 1
+
         print("------------------------------------------")
         print("Global frame:           " + str(self.GF))
         print("Temporary frame:        " + str(self.TF))
@@ -566,6 +563,26 @@ class IntInstruction(Frame):
         print("Frame stack:            " + str(self.frameStack))
         print("Instruction counter:    " + str(self.instructionCounter))
         print("Stack:                  " + str(self.stack))
+        print("Instruction stack:      " + str(self.instructionStack))
+        print("Labels:                 " + str(self.labels))
 
     def label(self, instr):
+        arg1 = Instruction.getAttribVal(instr,0)
+        self.instructionCounter += 1
+
         pass
+
+    def jump(self, instr):
+        self.instructionCounter += 1
+        arg1 = Instruction.getAttribVal(instr, 0)
+        print("----------------------")
+        if arg1 in self.labels:
+            print("Label existuje")
+
+    def jumpIfEq(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+        print(varname)
+        print(arg1)
+        print(arg2)

@@ -5,7 +5,6 @@ from intLib import *
 
 def main():
 
-    labels = []
     sourceFile = IOperation('input.src')
     fh =sourceFile.openFile()
 
@@ -13,16 +12,18 @@ def main():
     xmlInput = XmlOperation(fh)
     stringg = xmlInput.readXml() # naparsovany xml string
 
+    frame = Frame()
 
     # Prvni pruchod kvuli lex/syn analyze
     for instr in stringg:
         instrName = Instruction.getInstrName(instr).upper()
         for case in switch(instrName):
-            if case('CREATEFRAME'): pass
+            if case('CREATEFRAME'):pass
             if case('PUSHFRAME'): pass
             if case('POPFRAME'): pass
             if case('BREAK'): pass
             if case('RETURN'):
+                frame.instructionStack[Instruction.getOrder(instr)] = instr
                 Instruction.argCountCheck(instr, 0)
                 Instruction.noArgInstruction(instr)
                 break
@@ -31,12 +32,14 @@ def main():
             if case('POPS'):
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argVarInstruction(instr, 0)
+                frame.instructionStack[Instruction.getOrder(instr)] = instr
                 break
-            if case('LABEL'): labels.append(Instruction.getLabel(instr))
+            if case('LABEL'): frame.labels[Instruction.getOrder(instr)] = instr
             if case('CALL'): pass
             if case('JUMP'):
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argLabelInstruction(instr, 0)
+                frame.instructionStack[Instruction.getOrder(instr)] = instr
                 break
             if case('PUSHS'): pass
             if case('WRITE'): pass
@@ -44,6 +47,7 @@ def main():
             if case('DPRINT'):
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argSymbInstruction(instr, 0)
+                frame.instructionStack[Instruction.getOrder(instr)] = instr
                 break
             # ------------------ 2 Argumenty ---------------------
             if case('MOVE'): pass
@@ -53,11 +57,13 @@ def main():
                 Instruction.argCountCheck(instr, 2)
                 Instruction.argVarInstruction(instr, 0)
                 Instruction.argSymbInstruction(instr, 1)
+                frame.instructionStack[Instruction.getOrder(instr)] =  instr
                 break
             if case('READ'):
                 Instruction.argCountCheck(instr, 2)
                 Instruction.argVarInstruction(instr, 0)
                 Instruction.argTypeInstruction(instr, 1)
+                frame.instructionStack[Instruction.getOrder(instr)] =  instr
                 break
             # ------------------ 3 Argumenty ---------------------
             if case('ADD'): pass
@@ -74,10 +80,12 @@ def main():
             if case('CONCAT'): pass
             if case('GETCHAR'): pass
             if case('SETCHAR'):
+                frame.instructionStack[Instruction.getOrder(instr)] =  instr
                 Instruction.argCountCheck(instr, 3)
                 Instruction.argVarInstruction(instr, 0)
                 Instruction.argSymbInstruction(instr, 1)
                 Instruction.argSymbInstruction(instr, 2)
+                frame.instructionStack[Instruction.getOrder(instr)] =  instr
                 break
             if case('JUMPIFEQ'): pass
             if case('JUMPIFNEQ'):
@@ -85,122 +93,240 @@ def main():
                 Instruction.argLabelInstruction(instr, 0)
                 Instruction.argSymbInstruction(instr, 1)
                 Instruction.argSymbInstruction(instr, 2)
+                frame.instructionStack[Instruction.getOrder(instr)] =  instr
                 break
             if case():
                 Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
 
 
 
-
-    frame = Frame()
 
     # Interpretace
 
-    for instr in stringg:
-        instrName = Instruction.getInstrName(instr).upper()
-        for case in switch(instrName):
-            if case('CREATEFRAME'):
-                IntInstruction.createframe(frame)
-                break
-            if case('PUSHFRAME'):
-                IntInstruction.pushframe(frame)
-                break
-            if case('POPFRAME'):
-                IntInstruction.popframe(frame)
-                break
-            if case('DEFVAR'):
-                IntInstruction.defvar(frame, instr)
-                break
-            if case('MOVE'):
-                IntInstruction.move(frame, instr)
-                break
-            if case('PUSHS'):
-                IntInstruction.pushs(frame, instr)
-                break
-            if case('POPS'):
-                IntInstruction.pops(frame, instr)
-                break
-            if case('ADD'):
-                (firstNum,secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
-                val = frame.addTwoNumbers(firstNum,secondNum)
-                IntInstruction.insertValue(frame, varName, int(val))
-                break
-            if case('SUB'):
-                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
-                val = frame.subTwoNumbers(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, int(val))
-                break
-            if case('MUL'):
-                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
-                val = frame.mulTwoNumbers(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, int(val))
-                break
-            if case('IDIV'):
-                (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
-                val = frame.divTwoNumbers(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, int(val))
-                break
-            if case('WRITE'):
-                IntInstruction.Write(frame, instr)
-                break
-            if case('LT'):
-                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
-                val = frame.isLesser(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('GT'):
-                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
-                val = frame.isGreater(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('EQ'):
-                (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
-                val = frame.isEq(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('AND'):
-                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
-                val = frame.logAnd(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('OR'):
-                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
-                val = frame.logOr(firstNum, secondNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('NOT'):
-                (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
-                val = frame.logNot(firstNum)
-                IntInstruction.insertValue(frame, varName, val)
-                break
-            if case('INT2CHAR'):
-                IntInstruction.int2char(frame, instr)
-                break
-            if case('STRI2INT'):
-                IntInstruction.stri2int(frame, instr)
-                break
-            if case('CONCAT'):
-                IntInstruction.concat(frame, instr)
-                break
-            if case('STRLEN'):
-                IntInstruction.strlen(frame, instr)
-                break
-            if case('EXIT'):
-                IntInstruction.Exit(frame, instr)
-                break
-            if case('DPRINT'):
-                IntInstruction.dPrint(frame, instr)
-                break
-            if case('BREAK'):
-                IntInstruction.Break(frame)
-                break
-            if case('LABEL'):
-                IntInstruction.label(frame, instr)
-                break
-            if case():
-                Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
+    # for instr in stringg:
+    #     instrName = Instruction.getInstrName(instr).upper()
+    #     for case in switch(instrName):
+    #         if case('CREATEFRAME'):
+    #             IntInstruction.createframe(frame)
+    #             break
+    #         if case('PUSHFRAME'):
+    #             IntInstruction.pushframe(frame)
+    #             break
+    #         if case('POPFRAME'):
+    #             IntInstruction.popframe(frame)
+    #             break
+    #         if case('DEFVAR'):
+    #             #IntInstruction.defvar(frame, instr)
+    #             break
+    #         if case('MOVE'):
+    #             #IntInstruction.move(frame, instr)
+    #             break
+    #         if case('PUSHS'):
+    #             IntInstruction.pushs(frame, instr)
+    #             break
+    #         if case('POPS'):
+    #             IntInstruction.pops(frame, instr)
+    #             break
+    #         if case('ADD'):
+    #             (firstNum,secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+    #             val = frame.addTwoNumbers(firstNum,secondNum)
+    #             IntInstruction.insertValue(frame, varName, int(val))
+    #             break
+    #         if case('SUB'):
+    #             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+    #             val = frame.subTwoNumbers(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, int(val))
+    #             break
+    #         if case('MUL'):
+    #             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+    #             val = frame.mulTwoNumbers(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, int(val))
+    #             break
+    #         if case('IDIV'):
+    #             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, instr)
+    #             val = frame.divTwoNumbers(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, int(val))
+    #             break
+    #         if case('WRITE'):
+    #             IntInstruction.Write(frame, instr)
+    #             break
+    #         if case('LT'):
+    #             (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+    #             val = frame.isLesser(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('GT'):
+    #             (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+    #             val = frame.isGreater(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('EQ'):
+    #             (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, instr)
+    #             val = frame.isEq(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('AND'):
+    #             (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+    #             val = frame.logAnd(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('OR'):
+    #             (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+    #             val = frame.logOr(firstNum, secondNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('NOT'):
+    #             (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, instr)
+    #             val = frame.logNot(firstNum)
+    #             IntInstruction.insertValue(frame, varName, val)
+    #             break
+    #         if case('INT2CHAR'):
+    #             IntInstruction.int2char(frame, instr)
+    #             break
+    #         if case('STRI2INT'):
+    #             IntInstruction.stri2int(frame, instr)
+    #             break
+    #         if case('CONCAT'):
+    #             IntInstruction.concat(frame, instr)
+    #             break
+    #         if case('STRLEN'):
+    #             IntInstruction.strlen(frame, instr)
+    #             break
+    #         if case('EXIT'):
+    #             IntInstruction.Exit(frame, instr)
+    #             break
+    #         if case('DPRINT'):
+    #             IntInstruction.dPrint(frame, instr)
+    #             break
+    #         if case('BREAK'):
+    #             IntInstruction.Break(frame)
+    #             break
+    #         if case('LABEL'):
+    #             IntInstruction.label(frame, instr)
+    #             break
+    #         if case('JUMP'):
+    #             IntInstruction.jump(frame, instr)
+    #             break
+    #         if case():
+    #             Error.exitInrerpret(Error.invalidXmlStruct, "Unknown instruction")
 
 
 
+    act_instr = frame.instructionStack['1']
+    i = int(Instruction.getOrder(act_instr))
+    count = len(frame.instructionStack)
+    while count >= i:
+
+        instrName = Instruction.getInstrName(act_instr).upper() #nazev instrukce
+
+
+        if(instrName == 'CREATEFRAME'):
+            IntInstruction.createframe(frame)
+
+        elif(instrName == 'POPFRAME'):
+            IntInstruction.popframe(frame)
+
+        elif (instrName == 'DEFVAR'):
+            IntInstruction.defvar(frame, act_instr)
+
+        elif(instrName == 'MOVE'):
+            IntInstruction.move(frame, act_instr)
+
+        elif(instrName == 'PUSHS'):
+            IntInstruction.pushs(frame, act_instr)
+
+        elif(instrName == 'POPS'):
+            IntInstruction.pops(frame, act_instr)
+
+        elif(instrName == 'ADD'):
+            (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
+            val = frame.addTwoNumbers(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, int(val))
+        elif (instrName == 'SUB'):
+            (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
+            val = frame.subTwoNumbers(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, int(val))
+        elif (instrName == 'MUL'):
+            (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
+            val = frame.mulTwoNumbers(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, int(val))
+        elif (instrName == 'IDIV'):
+            (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
+            val = frame.divTwoNumbers(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, int(val))
+
+        elif(instrName == 'WRITE'):
+            IntInstruction.Write(frame, act_instr)
+
+        elif(instrName == 'LT'):
+            (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, act_instr)
+            val = frame.isLesser(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif (instrName == 'GT'):
+            (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, act_instr)
+            val = frame.isGreater(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif (instrName == 'EQ'):
+            (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, act_instr)
+            val = frame.isEq(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif(instrName == 'AND'):
+            (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, act_instr)
+            val = frame.logAnd(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif(instrName == 'OR'):
+            (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, act_instr)
+            val = frame.logOr(firstNum, secondNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif(instrName == 'NOT'):
+            (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, act_instr)
+            val = frame.logNot(firstNum)
+            IntInstruction.insertValue(frame, varName, val)
+        elif(instrName == 'INT2CHAR'):
+            IntInstruction.int2char(frame, act_instr)
+        elif (instrName == 'STRI2INT'):
+            IntInstruction.stri2int(frame, act_instr)
+        elif (instrName == 'CONCAT'):
+            IntInstruction.concat(frame, act_instr)
+        elif (instrName == 'STRLEN'):
+            IntInstruction.strlen(frame, act_instr)
+        elif (instrName == 'EXIT'):
+            IntInstruction.Exit(frame, act_instr)
+        elif (instrName == 'DPRINT'):
+            IntInstruction.dPrint(frame, act_instr)
+        elif (instrName == 'BREAK'):
+            IntInstruction.Break(frame)
+        elif(instrName == 'LABEL'):
+            pass
+        elif (instrName == 'JUMP'):          # podivame se, jestli label existuje, a pokud ano, tak do nasledujici instrukce ulozime
+            for act_instr in frame.labels:  # instrukci na pozici labelu, a take do i(ORDER) ulozime ORDER labelu -1, protoze se na konci cyklu automaticky
+                act_instr = (frame.labels[act_instr]) # inkrementuje
+
+                i = int(Instruction.getOrder(act_instr))-1  # Zde nedelame try catch blok, protoze nemuze vyskocit z pole, protoze do act_instr vkladame
+                                                            # instrukci, kterou uz jsme navstivily(tj. ten dany label)
+                #exit(1)                                    # ukonceni nekonecneho cyklu
+
+        elif(instrName == 'JUMPIFEQ'):
+            IntInstruction.jumpIfEq(frame, act_instr)
+            for act_instr in frame.labels:
+                if(4 == frame.instructionCounter):
+                    act_instr = (frame.labels[act_instr])
+                    i = int(Instruction.getOrder(act_instr)) - 1
+                else:
+                    act_instr = frame.instructionStack[str(i)]
+
+        elif(instrName == 'BREAK'):
+            IntInstruction.Break(frame)
+
+        else:
+            print(instrName)
+            print("jina instrukce")
+            exit(420)
+
+
+        i += 1
+        if(i <= count):
+            #print("pico konec")
+            act_instr = frame.instructionStack[str(i)]
 
 main()

@@ -50,6 +50,10 @@ class XmlOperation:
     def __init__(self,xmlFile):
         self.xmlFile = xmlFile
 
+    def sortchildrenby(parent, attr):
+        parent[:] = sorted(parent, key=lambda child: child.get(attr))
+
+
     def readXml(self):
         retVal = ""
         for line in self.xmlFile:
@@ -61,3 +65,6 @@ class XmlOperation:
         if not(retVal.tag =="program"):
             Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         return retVal
+
+    def getTag(self):
+        return self.xmlFile.getroot()

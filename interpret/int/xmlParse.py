@@ -51,6 +51,10 @@ class Instruction:
     def getInstrName(cls,instr):
         return (instr.attrib["opcode"])
 
+    @classmethod
+    def getOrder(cls, instr):
+        return (instr.attrib["order"])
+
 
     @classmethod
     def checkIfType(cls, type):
