@@ -1,6 +1,7 @@
 import sys
 import xml.etree.ElementTree as ET
 import os
+import fileinput
 
 
 
@@ -66,7 +67,7 @@ class ArgumentParse:
     @classmethod
     def checkHelp(cls, argv):
         if argv[1] == "--help" and len(argv) == 2:
-            print("naaapoveda")
+            print("Program načte XML reprezentaci programu ze zadaného souboru a tento program s využitím standardního vstupu a výstupu interpretuje")
             sys.exit(0)
 
     @classmethod
@@ -120,6 +121,18 @@ class XmlOperation:
         except:
             Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         if not(retVal.tag =="program"):
+            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
+        return retVal
+
+    def readXmlFromIn(self):
+        retVal = ""
+        for line in fileinput.input():
+            retVal += line
+        try:
+            retVal = ET.fromstring(retVal)
+        except:
+            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
+        if not (retVal.tag == "program"):
             Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         return retVal
 

@@ -6,12 +6,13 @@ import sys
 def main():
 
     file, sign = ArgumentParse.readArg(sys.argv)
-    sourceFile = IOperation('input.src')
+    sourceFile = IOperation(file)
     fh =sourceFile.openFile()
-
+    #a = input()
 
     xmlInput = XmlOperation(fh)
     stringg = xmlInput.readXml() # naparsovany xml string
+    #stringg = xmlInput.readXmlFromIn()
 
     frame = Frame()
 
@@ -41,7 +42,6 @@ def main():
                 frame.labelNames.append(Instruction.getLabel(instr))
             if case('CALL'): pass
             if case('JUMP'):
-                Instruction.checkIfLabelExist(instr, frame.labelNames)
                 Instruction.argCountCheck(instr, 1)
                 Instruction.argLabelInstruction(instr, 0)
                 frame.instructionStack[Instruction.getOrder(instr)] = instr
@@ -117,6 +117,8 @@ def main():
 
         if instrName == 'CREATEFRAME':
             IntInstruction.createframe(frame)
+        elif instrName == 'PUSHFRAME':
+            IntInstruction.pushframe(frame)
 
         elif instrName == 'POPFRAME':
             IntInstruction.popframe(frame)
@@ -194,7 +196,8 @@ def main():
         elif instrName == 'LABEL':
             IntInstruction.label(frame)
         elif instrName == 'JUMP':          # podivame se, jestli label existuje, a pokud ano, tak do nasledujici instrukce ulozime
-            (act_instr, i) = IntInstruction.jump(frame)
+            Instruction.checkIfLabelExist(act_instr, frame.labelNames)
+            i = IntInstruction.jump(frame, act_instr)
         elif instrName == 'JUMPIFEQ':
             (firstNum, secondNum) = IntInstruction.equalOperator(frame, act_instr)
             (act_instr, i) = IntInstruction.jumpIfEq(frame, firstNum, secondNum, act_instr, i)
@@ -203,7 +206,17 @@ def main():
             (act_instr, i) = IntInstruction.jumpIfNeq(frame, firstNum, secondNum, act_instr, i)
         elif instrName == 'BREAK':
             IntInstruction.Break(frame)
-
+        elif instrName == 'GETCHAR':
+            IntInstruction.getchar(frame, act_instr)
+        elif instrName == 'SETCHAR':
+            IntInstruction.setchar(frame, act_instr)
+        elif instrName == 'TYPE':
+            IntInstruction.typeInstr(frame, act_instr)
+        elif instrName == 'CALL':
+            Instruction.checkIfLabelExist(act_instr, frame.labelNames)
+            (act_instr, i) = IntInstruction.callInstr(frame, act_instr, i)
+        elif instrName == 'RETURN':
+             i = IntInstruction.returnInstr(frame, act_instr)
         else:
             print(instrName)
             print("jina instrukce")
@@ -213,6 +226,9 @@ def main():
         i += 1
         if i <= count:
             #print("pico konec")
-            act_instr = frame.instructionStack[str(i)]
+            try:
+                act_instr = frame.instructionStack[str(i)]
+            except:
+                Error.exitInrerpret(Error.invalidXmlStruct, "Invalid XML")
 
 main()

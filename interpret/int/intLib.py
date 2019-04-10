@@ -1,107 +1,7 @@
 from inputParse import *
 from xmlParse import  *
-import re
 import sys
-
-
-def printValue(val):
-    if(val == True):
-        print("true")
-    elif(val == False):
-        print("false")
-    else:
-        print(val)
-
-
-def checkBool(one, two):
-    if((one != "false" and one != "true") or (two != "false" and two != "true")):
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operators")
-
-
-def reversCorrBool(const):
-    if(const == "true"):
-        return True
-    elif(const == "false"):
-        return False
-    else:
-        return const
-
-
-def corrBool(const):
-    if(const == True):
-        return "true"
-    elif(const == False):
-        return "false"
-    else:
-        return const
-
-
-def getType(const):
-    if(type(const) is int):
-        return "int"
-    elif(type(const) is str):
-        return "string"
-    elif(type(const) is bool):
-        return "bool"
-    elif(type(const) is None):
-        return "None"
-
-
-def getEscapeSequence(instr):
-
-    groups = re.findall(r"\\([0-9]{3})", instr)  # Find escape sequences
-    groups = list(set(groups))  # Remove duplicates
-
-    # -- Decode escape sqeuences --
-    for group in groups:
-        if group == "092":  # Special case for \ (I don't even know why)
-            xmlValue = re.sub("\\\\092", "\\\\", instr)
-            continue
-
-    xmlValue = re.sub("\\\\{0}".format(group), chr(int(group)), instr)
-    return xmlValue
-
-
-def isVariable(instr):
-    if(Instruction.getAttrib(instr,0) == "var"):
-        return True
-
-
-def isGreater(one, two):
-    if(str(one) > str(two)):
-        return True
-    else:
-        return False
-
-
-def checkInt(integer):
-    if not re.search(r"^[-+]?\d+$$", str(integer)): # pokud to nebyl object, tak regex hazel chybu, musel jsem castnout na string
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operands")
-
-
-def divTwoNumbers(one, two):
-    try:
-        return (int(one) // int(two))
-    except:
-        Error.exitInrerpret(Error.invalidOperandValue, "Zero division!")
-
-
-def mulTwoNumbers(one, two):
-    return (int(one) * int(two))
-
-
-def subTwoNumbers(one, two):
-    return (int(one) - int(two))
-
-
-def addTwoNumbers(one, two):
-    return (int(one) + int(two))
-
-
-def checkIfTypeInt(integer):
-    if(integer != "int"):
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operand type")
-
+from intParse import *
 
 class Frame:
 
@@ -115,6 +15,7 @@ class Frame:
         self.labels = {}
         self.instructionStack = {}
         self.labelNames = []
+        self.callStack = []
 
     def initLF(self):
         self.LF = dict()
@@ -233,12 +134,11 @@ class Frame:
 
     def isSameValue(self, one,two):
         if (one == "true" or one == "false") and (two == "true" or two == "false"):
-            print("booole")
+            pass
         elif checkInt(one) and checkInt(two):
-            print("intttt")
             pass
         else:
-            print("neuspelo")
+            Error.exitInrerpret(Error.invalidOperandValue, "Operands are not same")
 
     def isLesser(self, one, two):
         one = reversCorrBool(one)
@@ -270,10 +170,27 @@ class Frame:
         one = reversCorrBool(one)
         return not one
 
-    def checkLabelExist(self, label, instr):
+    def checkLabelExist(self, label, instr): #TODO ??
         for label in self.labels:
             print(Instruction.getAttribVal(instr, 0))
 
+    def checkPositiveNumber(self, num):
+        if(int(num) < 0):
+            Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+    def modifyString(self, varname, index, string):
+        if(len(string) > 1):
+            string = string[0]
+        if(string == ""):
+            Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+        modifiedString = list(self.getValFromVar(varname))
+        try:
+            modifiedString[int(index)] = string
+        except:
+            Error.exitInrerpret(Error.invalidString, "Invalid string")
+        modifiedString = ''.join(modifiedString)
+        return modifiedString
 
 class IntInstruction(Frame):
 
@@ -313,7 +230,10 @@ class IntInstruction(Frame):
             Frame.insertValue(self,var,value)
             self.instructionCounter += 1
         elif Instruction.getAttrib(instr, 1) == "string":
-            Frame.insertValue(self,var,str(value))
+            if(value is None):
+                Frame.insertValue(self,var,str(""))
+            else:
+                Frame.insertValue(self, var, str(value))
             self.instructionCounter += 1
 
     def pushs(self, instr):
@@ -354,7 +274,6 @@ class IntInstruction(Frame):
 
         elif firstNum == None and secondNum != None: # pokud je prvni operand konstanta a druhy promenna
             checkIfTypeInt(Instruction.getAttrib(instr, 1))
-            print(secondNum)
             checkInt(secondNum)
             return arg1, secondNum, varname
 
@@ -375,11 +294,11 @@ class IntInstruction(Frame):
             if Instruction.getAttrib(instr, 0) == "string":
                 #varname = self.getEscapeSequence(varname)
                 if varname == None:
-                    print("")
+                    print("",end='')
                 else:
-                    print(varname)
+                    print(varname,end='')
             else:
-                print(varname)
+                print(varname,end='')
 
 
     def relationOperation(self, instr):
@@ -522,8 +441,9 @@ class IntInstruction(Frame):
 
 
         if firstNum != None and secondNum != None:
-            if firstNumT == "string" and secondNumT == "strng":
-                pass
+            if firstNumT == "string" and secondNumT == "string":
+                retVal = firstNum + secondNum
+                IntInstruction.insertValue(self, varname, retVal)
 
         elif firstNum == None and secondNum != None:
             if arg1T == "string" and secondNumT == "string":
@@ -607,14 +527,12 @@ class IntInstruction(Frame):
     def label(self):
         self.instructionCounter += 1
 
-    def jump(self):
+    def jump(self, ac):
         self.instructionCounter += 1
         for act_instr in self.labels:  # instrukci na pozici labelu, a take do i(ORDER) ulozime ORDER labelu -1, protoze se na konci cyklu automaticky
-            act_instr = (self.labels[act_instr])  # inkrementuje
-            i = int(Instruction.getOrder(act_instr)) - 1
-            return act_instr, i
-        else:
-            Error.exitInrerpret(Error.intSemantic, "Missing label")
+            if(Instruction.getAttribVal(self.labels[act_instr],0) == Instruction.getAttribVal(ac,0)):
+                act_instr = self.labels[act_instr]
+                return (int(Instruction.getOrder(act_instr))-1)
 
     def jumpIfEq(self, first, second, actual_instr, i):
         self.instructionCounter += 1
@@ -651,7 +569,7 @@ class IntInstruction(Frame):
         arg1T = Instruction.getAttrib(instr, 1)
         arg2T = Instruction.getAttrib(instr, 2)
 
-        # znovu osetrit existenci labelu pres jmeno, ne pres objekt instrukce
+
         firstNum = self.getValFromVar(arg1)
         secondNum = self.getValFromVar(arg2)
 
@@ -684,3 +602,117 @@ class IntInstruction(Frame):
                 return firstNum, secondNum
             else:
                 Error.exitInrerpret(Error.invalidOperandType, "invalid logical operand")
+
+    def getchar(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+
+        arg1T = Instruction.getAttrib(instr, 1)
+        arg2T = Instruction.getAttrib(instr, 2)
+
+        firstNum = self.getValFromVar(arg1)
+        secondNum = self.getValFromVar(arg2)
+
+        firstNumT = getType(firstNum)
+        secondNumT = getType(secondNum)
+
+        self.instructionCounter += 1
+        if(firstNum is not None and secondNum is not None): # promenna a promenna
+            if(firstNumT == "string" and secondNumT == "int"):
+                self.checkPositiveNumber(secondNum)
+                try:
+                    IntInstruction.insertValue(self, varname, firstNum[int(secondNum)])
+                except:
+                    Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+        elif(firstNum is not None and secondNum is None): #promena a konstanta
+            if(firstNumT == "string" and arg2T == "int" ):
+                self.checkPositiveNumber(arg2)
+                try:
+                    IntInstruction.insertValue(self, varname, firstNum[int(arg2)])
+                except:
+                    Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+        elif (firstNum is None and secondNum is not None):  # promena a konstanta
+            if (arg1T == "string" and secondNumT== "int"):
+                self.checkPositiveNumber(secondNum)
+                try:
+                    IntInstruction.insertValue(self, varname, arg1[int(secondNum)])
+                except:
+                    Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+        elif (firstNum is None and secondNum is None):  # promena a konstanta
+            if (arg1T == "string" and arg2T == "int"):
+                self.checkPositiveNumber(arg2)
+                try:
+                    IntInstruction.insertValue(self, varname, arg1[int(arg2)])
+                except:
+                    Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+    def setchar(self, instr):
+        self.instructionCounter += 1
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        arg2 = Instruction.getAttribVal(instr, 2)
+
+        arg1T = Instruction.getAttrib(instr, 1)
+        arg2T = Instruction.getAttrib(instr, 2)
+
+        firstNum = self.getValFromVar(arg1)
+        secondNum = self.getValFromVar(arg2)
+
+        firstNumT = getType(firstNum)
+        secondNumT = getType(secondNum)
+
+        if(getType(self.getValFromVar(varname)) != "string"):
+            Error.exitInrerpret(Error.invalidString, "Invalid string")
+
+        if(firstNum is not None and secondNum is not None): # var a var
+            if(firstNumT == "int" and secondNumT == "string"):
+                reTval = self.modifyString(varname, firstNum, secondNum)
+                self.insertValue(varname, reTval)
+
+        elif(firstNum is None and secondNum is not None): # const a var
+            if(arg1T == "int" and secondNumT == "string"):
+                reTval = self.modifyString(varname,arg1, secondNum)
+                self.insertValue(varname, reTval)
+
+        elif (firstNum is not None and secondNum is None): # var a const
+            if (firstNum == "int" and arg2T == "string"):
+                reTval = self.modifyString(varname, firstNum, arg2)
+                self.insertValue(varname, reTval)
+
+        elif (firstNum is None and secondNum is None): # var a const
+            if (arg1T == "int" and arg2T == "string"):
+                reTval = self.modifyString(varname, arg1, arg2)
+                self.insertValue(varname, reTval)
+
+    def typeInstr(self, instr):
+        varname = Instruction.getAttribVal(instr, 0)
+        arg1 = Instruction.getAttribVal(instr, 1)
+        firstNum = self.getValFromVar(arg1)
+
+        if(firstNum is not None): # var
+            self.insertValue(varname, getType(firstNum))
+        else:
+            self.insertValue(varname, Instruction.getAttrib(instr, 1))
+
+    def callInstr(self, instr, i):
+        self.callStack.append(i) # ulozeni inkrementovane hodnoty zasobniku volani
+
+        self.instructionCounter += 1
+        for act_instr in self.labels:  # instrukci na pozici labelu, a take do i(ORDER) ulozime ORDER labelu -1, protoze se na konci cyklu automaticky
+            act_instr = (self.labels[act_instr])  # inkrementuje
+            i = int(Instruction.getOrder(act_instr)) - 1
+            return act_instr, i
+        else:
+            Error.exitInrerpret(Error.intSemantic, "Missing label")
+
+    def returnInstr(self, act_instr):
+        try:
+            i = self.callStack.pop()
+        except:
+            sys.exit(99)
+
+        return i
