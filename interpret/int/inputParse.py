@@ -1,7 +1,6 @@
 import sys
 import xml.etree.ElementTree as ET
 import os
-import fileinput
 
 
 
@@ -39,11 +38,11 @@ class ArgumentParse:
         if first[:9] == "--source=":
             file = first[9:]
             cls.fileExist(file)
-            return file, True
+            return True, file, None
         elif first[:8] == "--input=":
             file = first[8:]
             cls.fileExist(file)
-            return file, False
+            return False, file, None
         else:
             Error.exitInrerpret(Error.invalidFile, "Invalid input file")
 
@@ -51,18 +50,18 @@ class ArgumentParse:
     def checkTwoArg(cls, argv):
         first = argv[1]
         second = argv[2]
-        file = first[:9]
-        file2 = second[:9]
-        if first[:9] == "--source=" and second[:9]== "--input=":
+        file = first[9:]
+        file2 = second[8:]
+        if first[:9] == "--source=" and second[:8]== "--input=":
             cls.fileExist(file)
             cls.fileExist(file2)
-            return file, file2
-        elif first[:9] == "--input=" and second[:9]== "--source=":
+            return True,file, file2
+        elif first[:8] == "--input=" and second[:9]== "--source=":
             cls.fileExist(file)
             cls.fileExist(file2)
-            return file2, file
+            return False, file2, file
         else:
-            Error.exitInrerpret(Error.invalidFile, "Invalid input file")
+            Error.exitInrerpret(Error.invalidFile, "pico\n") #TODO !!!
 
     @classmethod
     def checkHelp(cls, argv):
@@ -82,6 +81,26 @@ class ArgumentParse:
                 Error.exitInrerpret(Error.invalidFile, "Invalid input file")
         else:
             Error.exitInrerpret(Error.invalidFile, "Invalid input file")
+
+    @classmethod
+    def chooseInput(cls, file):
+        inputRead = ""
+        if (file[2] == None):  # Byl zadan pouze jeden argument
+            if (file[0] == True):  # Byl zadan --source=file
+                sourceRead = open(file[1])
+                inputRead = sys.stdin
+            else:  # Byl zadan parametr --input=file
+                sourceRead = sys.stdin
+                inputRead = open(file[1])
+        else:
+            if (file[0] == True):  # prvni je parametr --source
+                sourceRead = open(file[1])
+                inputRead = open(file[2])
+            else:                   # druhy parametr --input
+                sourceRead = open(file[2])
+                inputRead = open(file[1])
+
+        return sourceRead, inputRead
 class IOperation:
 
     def __init__(self,file):
@@ -121,18 +140,6 @@ class XmlOperation:
         except:
             Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         if not(retVal.tag =="program"):
-            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
-        return retVal
-
-    def readXmlFromIn(self):
-        retVal = ""
-        for line in fileinput.input():
-            retVal += line
-        try:
-            retVal = ET.fromstring(retVal)
-        except:
-            Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
-        if not (retVal.tag == "program"):
             Error.exitInrerpret(Error.noWellFormedXml, "Xml is no well formed")
         return retVal
 

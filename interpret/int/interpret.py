@@ -3,12 +3,15 @@ from inputParse import *
 from intLib import *
 import sys
 
-def main():
 
-    file, sign = ArgumentParse.readArg(sys.argv)
-    sourceFile = IOperation(file)
-    fh =sourceFile.openFile()
-    #a = input()
+def main():
+    fh = ""
+    inputRead = ""
+    sys.stderr.write("---------------------------------------------------")
+    file = ArgumentParse.readArg(sys.argv)
+    (fh, inputRead) = ArgumentParse.chooseInput(file)
+
+
 
     xmlInput = XmlOperation(fh)
     stringg = xmlInput.readXml() # naparsovany xml string
@@ -56,6 +59,7 @@ def main():
                 break
             # ------------------ 2 Argumenty ---------------------
             if case('MOVE'): pass
+            if case('NOT'): pass
             if case('INT2CHAR'): pass
             if case('STRLEN'): pass
             if case('TYPE'):
@@ -80,7 +84,6 @@ def main():
             if case('EQ'): pass
             if case('AND'): pass
             if case('OR'): pass
-            if case('NOT'): pass
             if case('STRI2INT'): pass
             if case('CONCAT'): pass
             if case('GETCHAR'): pass
@@ -106,8 +109,10 @@ def main():
 
 
     # interpretace
-
-    act_instr = frame.instructionStack['1']
+    try:
+        act_instr = frame.instructionStack['1']
+    except:
+        sys.exit(0)
     i = int(Instruction.getOrder(act_instr))
     count = len(frame.instructionStack)
     while i <= count:
@@ -137,19 +142,19 @@ def main():
 
         elif instrName == 'ADD':
             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
-            val = addTwoNumbers(firstNum, secondNum)
+            val = frame.addTwoNumbers(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, int(val))
         elif instrName == 'SUB':
             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
-            val = subTwoNumbers(firstNum, secondNum)
+            val = frame.subTwoNumbers(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, int(val))
         elif instrName == 'MUL':
             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
-            val = mulTwoNumbers(firstNum, secondNum)
+            val = frame.mulTwoNumbers(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, int(val))
         elif instrName == 'IDIV':
             (firstNum, secondNum, varName) = IntInstruction.arithmeticOperation(frame, act_instr)
-            val = divTwoNumbers(firstNum, secondNum)
+            val = frame.divTwoNumbers(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, int(val))
 
         elif instrName == 'WRITE':
@@ -161,7 +166,7 @@ def main():
             IntInstruction.insertValue(frame, varName, val)
         elif instrName == 'GT':
             (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, act_instr)
-            val = isGreater(firstNum, secondNum)
+            val = frame.isGreater(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, val)
         elif instrName == 'EQ':
             (firstNum, secondNum, varName) = IntInstruction.relationOperation(frame, act_instr)
@@ -200,7 +205,7 @@ def main():
             i = IntInstruction.jump(frame, act_instr)
         elif instrName == 'JUMPIFEQ':
             (firstNum, secondNum) = IntInstruction.equalOperator(frame, act_instr)
-            (act_instr, i) = IntInstruction.jumpIfEq(frame, firstNum, secondNum, act_instr, i)
+            i= IntInstruction.jumpIfEq(frame, firstNum, secondNum, act_instr, i)
         elif instrName == 'JUMPIFNEQ':
             (firstNum, secondNum) = IntInstruction.equalOperator(frame, act_instr)
             (act_instr, i) = IntInstruction.jumpIfNeq(frame, firstNum, secondNum, act_instr, i)
@@ -214,9 +219,11 @@ def main():
             IntInstruction.typeInstr(frame, act_instr)
         elif instrName == 'CALL':
             Instruction.checkIfLabelExist(act_instr, frame.labelNames)
-            (act_instr, i) = IntInstruction.callInstr(frame, act_instr, i)
+            i = IntInstruction.callInstr(frame, act_instr, i)
         elif instrName == 'RETURN':
-             i = IntInstruction.returnInstr(frame, act_instr)
+             i = IntInstruction.returnInstr(frame)
+        elif instrName == 'READ':
+            IntInstruction.readInstr(frame, act_instr)
         else:
             print(instrName)
             print("jina instrukce")

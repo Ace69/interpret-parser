@@ -1,105 +1,6 @@
 from xmlParse import *
 from inputParse import *
-from intLib import *
 import re
-
-def printValue(val):
-    if(val == True):
-        print("true", end='')
-    elif(val == False):
-        print("false", end='')
-    else:
-        print(val, end='')
-
-
-def checkBool(one, two):
-    if((one != False and one != True) or (two != False and two != True)):
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operators")
-
-
-def reversCorrBool(const):
-    if(const == "true"):
-        return True
-    elif(const == "false"):
-        return False
-    else:
-        return const
-
-
-def corrBool(const):
-    if(const == True):
-        return "true"
-    elif(const == False):
-        return "false"
-    else:
-        return const
-
-
-def getType(const):
-    if(type(const) is int):
-        return "int"
-    elif(type(const) is str):
-        return "string"
-    elif(type(const) is bool):
-        return "bool"
-    elif(type(const) is None):
-        return None
-
-
-def getEscapeSequence(instr):
-
-    groups = re.findall(r"\\([0-9]{3})", instr)  # Find escape sequences
-    groups = list(set(groups))  # Remove duplicates
-
-    # -- Decode escape sqeuences --
-    for group in groups:
-        if group == "092":  # Special case for \ (I don't even know why)
-            xmlValue = re.sub("\\\\092", "\\\\", instr)
-            continue
-
-    xmlValue = re.sub("\\\\{0}".format(group), chr(int(group)), instr)
-    return xmlValue
-
-
-def isVariable(instr):
-    if(Instruction.getAttrib(instr,0) == "var"):
-        return True
-
-
-def isGreater(one, two):
-    if(str(one) > str(two)):
-        return True
-    else:
-        return False
-
-
-def checkInt(integer):
-    if not re.search(r"^[-+]?\d+$$", str(integer)): # pokud to nebyl object, tak regex hazel chybu, musel jsem castnout na string
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operands")
-
-
-def divTwoNumbers(one, two):
-    try:
-        return (int(one) // int(two))
-    except:
-        Error.exitInrerpret(Error.invalidOperandValue, "Zero division!")
-
-
-def mulTwoNumbers(one, two):
-    return (int(one) * int(two))
-
-
-def subTwoNumbers(one, two):
-    return (int(one) - int(two))
-
-
-def addTwoNumbers(one, two):
-    return (int(one) + int(two))
-
-
-def checkIfTypeInt(integer):
-    if(integer != "int"):
-        Error.exitInrerpret(Error.invalidOperandType, "Invalid operand type")
 
 
 class Frame:
@@ -114,21 +15,20 @@ class Frame:
         self.labels = {}
         self.instructionStack = {}
         self.labelNames = []
+        self.callStack = []
 
     def initLF(self):
         self.LF = dict()
 
-
     def initTF(self):
         self.TF = dict()
-
 
     def moveTFtoLF(self):
         if self.TF != None:
             self.LF = self.TF
             self.TF = None
         else:
-            Error.exitInrerpret(Error.invalidFrame,"Frame not defined")
+            Error.exitInrerpret(Error.invalidFrame, "Frame not defined")
 
     def moveLFtoTF(self):
         try:
@@ -141,12 +41,11 @@ class Frame:
     def insertIntoGlobal(self, var, value):
         self.GF[var[3:]] = value
 
-    def insertIntoTemp(self,var):
+    def insertIntoTemp(self, var):
         self.TF[var[3:]] = None
 
     def insertIntoLocal(self, var):
         self.LF[var[3:]] = None
-
 
     def insertVar(self, var):
         if var[:3] == "GF@":
@@ -155,17 +54,16 @@ class Frame:
             try:
                 self.insertIntoTemp(var)
             except:
-                Error.exitInrerpret(Error.invalidFrame,"No temporary frame available")
+                Error.exitInrerpret(Error.invalidFrame, "No temporary frame available")
         elif var[:3] == "LF@":
             try:
                 self.insertIntoLocal(var)
             except:
-                Error.exitInrerpret(Error.invalidFrame,"No local frame available")
+                Error.exitInrerpret(Error.invalidFrame, "No local frame available")
 
     def checkInGlobal(self, varname):
-        if not varname in  self.GF:
+        if not varname in self.GF:
             Error.exitInrerpret(Error.invalidVar, "Variable does not exists")
-
 
     def checkInTemp(self, varname):
         if self.TF != None:
@@ -193,8 +91,7 @@ class Frame:
         elif varname[:3] == "LF@":
             self.checkInLocal(varname[3:])
 
-
-    def insertValue(self, varName,value):
+    def insertValue(self, varName, value):
         if varName[:3] == "GF@":
             self.checkInGlobal(varName[3:])
             self.GF[varName[3:]] = value
@@ -230,56 +127,56 @@ class Frame:
         elif varname[:3] == "LF@":
             return self.LF[varname[3:]]
 
-    def isSameValue(self, one,two):
+    def isSameValue(self, one, two):
         if (one == "true" or one == "false") and (two == "true" or two == "false"):
             pass
-        elif checkInt(one) and checkInt(two):
+        elif self.checkInt(one) and self.checkInt(two):
             pass
         else:
             Error.exitInrerpret(Error.invalidOperandValue, "Operands are not same")
 
     def isLesser(self, one, two):
-        one = reversCorrBool(one)
-        two = reversCorrBool(two)
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
         if one < two:
             return True
         else:
             return False
 
     def isEq(self, one, two):
-        one = reversCorrBool(one)
-        two = reversCorrBool(two)
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
         if one == two:
             return True
         else:
             return False
 
     def logAnd(self, one, two):
-        one = reversCorrBool(one)
-        two = reversCorrBool(two)
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
         return one and two
 
     def logOr(self, one, two):
-        one = reversCorrBool(one)
-        two = reversCorrBool(two)
+        one = self.reversCorrBool(one)
+        two = self.reversCorrBool(two)
         return one or two
 
     def logNot(self, one):
-        one = reversCorrBool(one)
+        one = self.reversCorrBool(one)
         return not one
 
-    def checkLabelExist(self, label, instr): #TODO ??
+    def checkLabelExist(self, label, instr):  # TODO ??
         for label in self.labels:
             print(Instruction.getAttribVal(instr, 0))
 
     def checkPositiveNumber(self, num):
-        if(int(num) < 0):
+        if (int(num) < 0):
             Error.exitInrerpret(Error.invalidString, "Invalid string")
 
     def modifyString(self, varname, index, string):
-        if(len(string) > 1):
+        if (len(string) > 1):
             string = string[0]
-        if(string == ""):
+        if (string == ""):
             Error.exitInrerpret(Error.invalidString, "Invalid string")
 
         modifiedString = list(self.getValFromVar(varname))
@@ -289,3 +186,89 @@ class Frame:
             Error.exitInrerpret(Error.invalidString, "Invalid string")
         modifiedString = ''.join(modifiedString)
         return modifiedString
+
+    def printValue(self, val):
+        if (val == True):
+            print("true", end='')
+        elif (val == False):
+            print("false", end='')
+        else:
+            print(val, end='')
+
+    def checkBool(self, one, two):
+        if ((one != False and one != True) or (two != False and two != True)):
+            Error.exitInrerpret(Error.invalidOperandType, "Invalid operators")
+
+    def reversCorrBool(self, const):
+        if (const == "true"):
+            return True
+        elif (const == "false"):
+            return False
+        else:
+            return const
+
+    def corrBool(self, const):
+        if (const == True):
+            return "true"
+        elif (const == False):
+            return "false"
+        else:
+            return const
+
+    def getType(self, const):
+        if (type(const) is int):
+            return "int"
+        elif (type(const) is str):
+            return "string"
+        elif (type(const) is bool):
+            return "bool"
+        elif (type(const) is None):
+            return None
+
+    def getEscapeSequence(self, instr):
+
+        groups = re.findall(r"\\([0-9]{3})", instr)  # Find escape sequences
+        groups = list(set(groups))  # Remove duplicates
+
+        # -- Decode escape sqeuences --
+        for group in groups:
+            if group == "092":  # Special case for \ (I don't even know why)
+                xmlValue = re.sub("\\\\092", "\\\\", instr)
+                continue
+
+        xmlValue = re.sub("\\\\{0}".format(group), chr(int(group)), instr)
+        return xmlValue
+
+    def isVariable(self, instr):
+        if (Instruction.getAttrib(instr, 0) == "var"):
+            return True
+
+    def isGreater(self, one, two):
+        if (str(one) > str(two)):
+            return True
+        else:
+            return False
+
+    def checkInt(self, integer):
+        if not re.search(r"^[-+]?\d+$$",
+                         str(integer)):  # pokud to nebyl object, tak regex hazel chybu, musel jsem castnout na string
+            Error.exitInrerpret(Error.invalidOperandType, "Invalid operands")
+
+    def divTwoNumbers(self, one, two):
+        try:
+            return (int(one) // int(two))
+        except:
+            Error.exitInrerpret(Error.invalidOperandValue, "Zero division!")
+
+    def mulTwoNumbers(self, one, two):
+        return (int(one) * int(two))
+
+    def subTwoNumbers(self, one, two):
+        return (int(one) - int(two))
+
+    def addTwoNumbers(self, one, two):
+        return (int(one) + int(two))
+
+    def checkIfTypeInt(self, integer):
+        if (integer != "int"):
+            Error.exitInrerpret(Error.invalidOperandType, "Invalid operand type")
