@@ -180,9 +180,10 @@ def main():
             val = frame.logOr(firstNum, secondNum)
             IntInstruction.insertValue(frame, varName, val)
         elif instrName == 'NOT':
-            (firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, act_instr)
-            val = frame.logNot(firstNum)
-            IntInstruction.insertValue(frame, varName, val)
+            pass
+            #(firstNum, secondNum, varName) = IntInstruction.logicalOperation(frame, act_instr)
+            #val = frame.logNot(firstNum)
+            #IntInstruction.insertValue(frame, varName, val)
         elif instrName == 'INT2CHAR':
             IntInstruction.int2char(frame, act_instr)
         elif instrName == 'STRI2INT':

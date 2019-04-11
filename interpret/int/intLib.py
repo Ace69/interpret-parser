@@ -349,7 +349,13 @@ class IntInstruction(Frame):
         """"" Vlozeni <symb> do zasobniku zasobnikovych instrukci"""""
         varname = Instruction.getAttribVal(instr,0)
         self.checkFrameExists(varname)
-        self.insertValIntoStack(varname)
+        firstNum = self.getValFromVar(varname)
+        firstNumT = self.getType(firstNum)
+        if(firstNum is not None): # promenna
+            self.insertValIntoStack(firstNum)
+        else:
+            self.insertValIntoStack(varname)
+
         self.instructionCounter += 1
 
     def pops(self, instr):
@@ -598,7 +604,10 @@ class IntInstruction(Frame):
 
         self.instructionCounter += 1
         self.checkFrameExists(varname)
-        firstNum = self.getValFromVar(arg1)
+        if(arg1 is not None):
+            firstNum = self.getValFromVar(arg1)
+        else:
+            firstNum = ""
 
         firstNumT = self.getType(firstNum)
         if firstNum != None:

@@ -133,7 +133,7 @@ class Instruction:
     @classmethod
     def argTypeInstruction(cls, instr, count):
         if cls.getAttrib(instr, count) == "type":
-            typeValue = cls.getAttrib(instr,count)
+            typeValue = cls.getAttribVal(instr,1)
             cls.checkIfType(typeValue)
         else:
             Error.exitInrerpret(Error.invalidXmlStruct,"Lexical or syntax error")
