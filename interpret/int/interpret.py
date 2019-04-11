@@ -7,7 +7,7 @@ import sys
 def main():
     fh = ""
     inputRead = ""
-    sys.stderr.write("---------------------------------------------------")
+    #sys.stderr.write("---------------------------------------------------")
     file = ArgumentParse.readArg(sys.argv)
     (fh, inputRead) = ArgumentParse.chooseInput(file)
 
@@ -97,7 +97,6 @@ def main():
                 break
             if case('JUMPIFEQ'): pass
             if case('JUMPIFNEQ'):
-                Instruction.checkIfLabelExist(instr, frame.labelNames)
                 Instruction.argCountCheck(instr, 3)
                 Instruction.argLabelInstruction(instr, 0)
                 Instruction.argSymbInstruction(instr, 1)
@@ -204,11 +203,13 @@ def main():
             Instruction.checkIfLabelExist(act_instr, frame.labelNames)
             i = IntInstruction.jump(frame, act_instr)
         elif instrName == 'JUMPIFEQ':
+            Instruction.checkIfLabelExist(act_instr, frame.labelNames)
             (firstNum, secondNum) = IntInstruction.equalOperator(frame, act_instr)
             i= IntInstruction.jumpIfEq(frame, firstNum, secondNum, act_instr, i)
         elif instrName == 'JUMPIFNEQ':
+            Instruction.checkIfLabelExist(act_instr, frame.labelNames)
             (firstNum, secondNum) = IntInstruction.equalOperator(frame, act_instr)
-            (act_instr, i) = IntInstruction.jumpIfNeq(frame, firstNum, secondNum, act_instr, i)
+            i = IntInstruction.jumpIfNeq(frame, firstNum, secondNum, act_instr, i)
         elif instrName == 'BREAK':
             IntInstruction.Break(frame)
         elif instrName == 'GETCHAR':
